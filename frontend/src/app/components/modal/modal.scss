@@ -1,0 +1,69 @@
+:host {
+    display: contents;
+}
+
+.modal {
+    width: min(28rem, calc(100% - 2.5rem));
+    max-height: calc(100svh - 3rem);
+    padding: 0;
+    overflow: auto;
+    border: var(--border-default);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+
+    &::backdrop {
+        background-color: rgb(17 22 24 / 65%);
+        backdrop-filter: blur(4px);
+    }
+}
+
+.modal__contenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 5vw, 2rem);
+    text-align: center;
+
+    h2 {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+    }
+
+    p {
+        margin: 0 0 0.5rem;
+        font-size: 0.875rem;
+        overflow-wrap: anywhere;
+    }
+}
+
+.modal__tipo {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.modal__icono {
+    display: grid;
+    width: 4rem;
+    height: 4rem;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    box-shadow: var(--shadow-control);
+
+    svg {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+.modal__contenido--error .modal__icono {
+    background-color: var(--color-error);
+    color: var(--color-white);
+}

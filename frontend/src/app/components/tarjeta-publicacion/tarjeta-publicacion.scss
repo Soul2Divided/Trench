@@ -1,0 +1,93 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.publicacion {
+    padding: clamp(1rem, 3vw, 1.5rem);
+
+    h2 {
+        margin: 1.25rem 0 0.75rem;
+        font-size: 1.125rem;
+        line-height: 1.4;
+    }
+}
+
+.publicacion__cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.publicacion__autor {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow-wrap: anywhere;
+}
+
+.publicacion__nombre {
+    font-size: 0.875rem;
+    font-weight: 800;
+}
+
+.publicacion__usuario,
+.publicacion__fecha {
+    font-size: 0.75rem;
+}
+
+.publicacion__fecha {
+    margin-top: 0.25rem;
+}
+
+.publicacion__eliminar {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    color: var(--color-ink);
+    cursor: pointer;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.publicacion__mensaje {
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.publicacion__imagen {
+    width: 100%;
+    height: auto;
+    border: var(--border-default);
+    border-radius: var(--radius-control);
+}
+
+.publicacion__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+
+    .button {
+        min-height: 2.5rem;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+    }
+
+    svg {
+        width: 1.125rem;
+        height: 1.125rem;
+        flex-shrink: 0;
+    }
+}

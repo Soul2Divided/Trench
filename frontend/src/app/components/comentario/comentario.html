@@ -1,0 +1,16 @@
+<article class="comentario">
+    <span class="avatar comentario__avatar" aria-hidden="true">{{ comentario().iniciales }}</span>
+
+    <div class="comentario__contenido">
+        <header class="comentario__cabecera">
+            <span class="comentario__nombre">{{ comentario().nombre }}</span>
+            <span class="comentario__fecha">{{ comentario().fecha }}</span>
+        </header>
+
+        <p>{{ comentario().mensaje }}</p>
+
+        @if (comentario().editado) {
+            <span class="comentario__estado">Editado</span>
+        }
+    </div>
+</article>

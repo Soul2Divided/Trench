@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+    <rect width="960" height="560" fill="#e87fa0"/>
+    <circle cx="835" cy="90" r="230" fill="#f3bf46"/>
+    <path d="M0 470Q250 300 490 470T960 430V560H0Z" fill="#53a1b3"/>
+    <circle cx="665" cy="290" r="205" fill="#111618"/>
+    <g fill="none" stroke="#fad4e0" stroke-opacity=".22" stroke-width="2">
+        <circle cx="665" cy="290" r="180"/>
+        <circle cx="665" cy="290" r="160"/>
+        <circle cx="665" cy="290" r="140"/>
+        <circle cx="665" cy="290" r="120"/>
+    </g>
+    <circle cx="665" cy="290" r="65" fill="#fad4e0"/>
+    <circle cx="665" cy="290" r="10" fill="#111618"/>
+    <g fill="#111618" font-family="sans-serif" font-weight="900">
+        <text x="55" y="155" font-size="28" letter-spacing="6">EN REPEAT</text>
+        <text x="50" y="250" font-size="70">UN DISCO,</text>
+        <text x="50" y="330" font-size="70">MIL</text>
+        <text x="50" y="410" font-size="70">LUGARES.</text>
+    </g>
+</svg>

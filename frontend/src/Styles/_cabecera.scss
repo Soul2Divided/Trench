@@ -1,0 +1,99 @@
+.cabecera {
+    border-bottom: var(--border-default);
+    background-color: var(--color-surface);
+    box-shadow: 0 3px 0 var(--color-ink);
+}
+
+.cabecera__acciones {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cabecera__contenido {
+    display: grid;
+    grid-template-columns: var(--ancho-lateral, 16rem) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--separacion-columnas, 2rem);
+    padding-block: 1rem;
+}
+
+.cabecera__marca {
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.titulo-marca {
+    margin: 0;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-shadow: -1px -1px 0 var(--color-ink), 1px -1px 0 var(--color-ink), -1px 1px 0 var(--color-ink), 2px 2px 0 var(--color-ink);
+}
+
+.cabecera__eslogan {
+    margin: 0.375rem 0 0;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.buscador {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: var(--border-default);
+    border-radius: 999px;
+    background-color: var(--color-white);
+    box-shadow: var(--shadow-control);
+
+    input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        background-color: transparent;
+        color: var(--color-ink);
+        font-size: 0.8125rem;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 52rem) {
+    .cabecera__contenido {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+.boton-notificaciones {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-control);
+    cursor: pointer;
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+

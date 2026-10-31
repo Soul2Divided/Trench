@@ -1,0 +1,23 @@
+.avatar {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-control);
+    font-size: 0.8125rem;
+    font-weight: 800;
+}
+
+.avatar--grande {
+    width: 3.25rem;
+    height: 3.25rem;
+}
+
+.avatar--boton {
+    cursor: pointer;
+}

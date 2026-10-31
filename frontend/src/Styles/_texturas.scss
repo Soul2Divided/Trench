@@ -1,0 +1,53 @@
+.fondo-escamas {
+    position: relative;
+    isolation: isolate;
+
+    &::before,
+    &::after {
+        position: absolute;
+        z-index: -1;
+        width: min(42vw, 36rem);
+        height: min(65vh, 40rem);
+        background-image:
+            radial-gradient(ellipse at 50% 0, transparent 60%, var(--color-surface) 61%, var(--color-surface) 65%, transparent 66%),
+            radial-gradient(ellipse at 50% 0, transparent 60%, var(--color-surface) 61%, var(--color-surface) 65%, transparent 66%);
+        background-size: 48px 48px;
+        background-position: 0 0, 24px 24px;
+        mask-image: radial-gradient(ellipse at center, black 5%, transparent 70%);
+        opacity: 0.25;
+        pointer-events: none;
+        content: '';
+    }
+
+    &::before {
+        top: 0;
+        left: 0;
+    }
+
+    &::after {
+        right: 0;
+        bottom: 0;
+        transform: rotate(180deg);
+    }
+}
+
+.fondo-escamas--laterales {
+    &::before,
+    &::after {
+        position: fixed;
+        top: 7rem;
+        bottom: auto;
+        width: min(32vw, 32rem);
+        height: calc(100svh - 7rem);
+        opacity: 0.35;
+    }
+
+    &::before {
+        mask-image: radial-gradient(ellipse at left center, black 10%, transparent 75%);
+    }
+
+    &::after {
+        mask-image: radial-gradient(ellipse at right center, black 10%, transparent 75%);
+        transform: none;
+    }
+}

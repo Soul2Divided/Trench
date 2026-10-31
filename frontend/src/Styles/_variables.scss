@@ -1,0 +1,18 @@
+:root {
+    --color-background: #53a1b3;
+    --color-surface: #fad4e0;
+    --color-primary: #e87fa0;
+    --color-accent: #f3bf46;
+    --color-ink: #111618;
+    --color-white: #ffffff;
+    --color-error: #9b163b;
+
+    --font-body: 'Epilogue', sans-serif;
+    --font-heading: 'Rubik', sans-serif;
+
+    --border-default: 1.5px solid var(--color-ink);
+    --radius-control: 0.75rem;
+    --radius-card: 1.25rem;
+    --shadow-control: 2.5px 2.5px 0 var(--color-ink);
+    --shadow-card: 6px 6px 0 var(--color-ink);
+}

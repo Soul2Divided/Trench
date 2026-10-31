@@ -1,0 +1,49 @@
+<dialog
+    #dialogo
+    class="modal"
+    aria-labelledby="modal-titulo"
+    aria-describedby="modal-mensaje"
+    (cancel)="cerrarConEscape($event)"
+>
+    @let datos = mensaje();
+
+    <div class="modal__contenido" [class.modal__contenido--error]="datos.tipo === 'error'">
+        <span class="modal__tipo">
+            @switch (datos.tipo) {
+                @case ('success') {
+                    Todo listo
+                }
+                @case ('error') {
+                    Algo salió mal
+                }
+                @default {
+                    Un momento
+                }
+            }
+        </span>
+
+        <span class="modal__icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                @switch (datos.tipo) {
+                    @case ('success') {
+                        <path d="m5 12 4 4L19 6" />
+                    }
+                    @case ('error') {
+                        <path d="m7 7 10 10M17 7 7 17" />
+                    }
+                    @default {
+                        <path d="M12 11v6M12 7h.01" />
+                    }
+                }
+            </svg>
+        </span>
+
+        <h2 id="modal-titulo">{{ datos.titulo }}</h2>
+
+        <p id="modal-mensaje">{{ datos.mensaje }}</p>
+
+        <button class="button button--accent button--full" type="button" autofocus (click)="cerrar()">
+            {{ datos.textoBoton || 'Entendido' }}
+        </button>
+    </div>
+</dialog>

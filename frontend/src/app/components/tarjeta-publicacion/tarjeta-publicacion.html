@@ -1,0 +1,47 @@
+<article class="publicacion card" [attr.aria-labelledby]="'titulo-publicacion-' + publicacion().id">
+    <header class="publicacion__cabecera">
+        <span class="avatar" aria-hidden="true">{{ publicacion().iniciales }}</span>
+
+        <div class="publicacion__autor">
+            <span class="publicacion__nombre">{{ publicacion().nombre }}</span>
+            <span class="publicacion__usuario">&#64;{{ publicacion().usuario }}</span>
+            <span class="publicacion__fecha">{{ publicacion().fecha }}</span>
+        </div>
+
+        @if (publicacion().propia) {
+            <button class="publicacion__eliminar" type="button" aria-label="Eliminar publicación">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
+                </svg>
+            </button>
+        }
+    </header>
+
+    <h2 [id]="'titulo-publicacion-' + publicacion().id">{{ publicacion().titulo }}</h2>
+
+    <p class="publicacion__mensaje">{{ publicacion().mensaje }}</p>
+
+    @if (publicacion().imagen) {
+        <img class="publicacion__imagen" [src]="publicacion().imagen" [alt]="publicacion().descripcionImagen" loading="lazy">
+    }
+
+    <footer class="publicacion__acciones">
+        <button class="button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+            </svg>
+
+            {{ publicacion().meGusta }} Me gusta
+        </button>
+
+        <button class="button" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 4H4v13h4v4l5-4h7Z" />
+            </svg>
+
+            {{ publicacion().comentarios }} Comentarios
+        </button>
+    </footer>
+
+    <ng-content />
+</article>

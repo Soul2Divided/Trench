@@ -1,0 +1,122 @@
+<div class="login-page fondo-escamas">
+    <main class="login-main page-container">
+        <section class="login-card card" aria-labelledby="login-title">
+            <div class="login-identidad">
+                <p class="login-marca">TRENCH</p>
+
+                <p class="login-tagline">Where music lives</p>
+            </div>
+
+            <div class="auth-navigation" role="group" aria-label="Acceso a Trench">
+                <button
+                    class="auth-navigation__item"
+                    type="button"
+                    [class.auth-navigation__item--active]="modo() === 'login'"
+                    [attr.aria-pressed]="modo() === 'login'"
+                    (click)="cambiarModo('login')"
+                >
+                    Iniciar sesión
+                </button>
+
+                <button
+                    class="auth-navigation__item"
+                    type="button"
+                    [class.auth-navigation__item--active]="modo() === 'registro'"
+                    [attr.aria-pressed]="modo() === 'registro'"
+                    (click)="cambiarModo('registro')"
+                >
+                    Registrarse
+                </button>
+            </div>
+
+            <div class="login-introduction">
+                <h1 id="login-title">{{ modo() === 'login' ? 'Ingresá a tu cuenta' : 'Creá tu cuenta' }}</h1>
+                <p>{{ modo() === 'login' ? 'Usá tu correo electrónico y contraseña.' : 'Tu música, tus historias y un lugar para compartirlas.' }}</p>
+            </div>
+
+            @if (modo() === 'registro') {
+                <app-registro></app-registro>
+            } @else {
+                <form class="login-form" aria-labelledby="login-title" [formGroup]="loginForm" (ngSubmit)="enviarLogin()" novalidate>
+                    <div class="form-field">
+                        <label class="form-label" for="login-email">Correo electrónico</label>
+
+                        <input
+                            class="form-control"
+                            id="login-email"
+                            name="email"
+                            formControlName="email"
+                            type="email"
+                            autocomplete="username"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            placeholder="tu.correo@musica.com"
+                            required
+                            [attr.aria-invalid]="mensajeError(loginForm.controls.email) ? 'true' : null"
+                            [attr.aria-describedby]="mensajeError(loginForm.controls.email) ? 'login-email-error' : null"
+                            [class.form-control--shake]="intentandoEnviar() && !!mensajeError(loginForm.controls.email)"
+                            (blur)="normalizarEmail()"
+                            (animationend)="intentandoEnviar.set(false)"
+                        >
+
+                        @if (mensajeError(loginForm.controls.email); as error) {
+                            <p class="form-error" id="login-email-error" aria-live="polite">{{ error }}</p>
+                        }
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="login-password">Contraseña</label>
+
+                        <input
+                            class="form-control"
+                            id="login-password"
+                            name="password"
+                            formControlName="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Ingresá tu contraseña"
+                            required
+                            [attr.aria-invalid]="mensajeError(loginForm.controls.password) ? 'true' : null"
+                            [attr.aria-describedby]="mensajeError(loginForm.controls.password) ? 'login-password-error' : null"
+                            [class.form-control--shake]="intentandoEnviar() && !!mensajeError(loginForm.controls.password)"
+                            (animationend)="intentandoEnviar.set(false)"
+                        >
+
+                        @if (mensajeError(loginForm.controls.password); as error) {
+                            <p class="form-error" id="login-password-error" aria-live="polite">{{ error }}</p>
+                        }
+                    </div>
+
+                    <button class="button button--primary button--full login-submit" type="submit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="m10 8 6 4-6 4Z" stroke-linejoin="round" />
+                        </svg>
+
+                        Iniciar sesión
+                    </button>
+                </form>
+            }
+
+            <a class="button button--full login-explorar" routerLink="/publicaciones">
+                Explorar publicaciones
+            </a>
+
+            <div class="login-card-footer" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </section>
+    </main>
+
+    <footer class="login-footer">
+        <p>"... in Trench i'm not alone"</p>
+    </footer>
+
+</div>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal [mensaje]="mensaje" (cerrado)="mensajeModal.set(null)" />
+}
+

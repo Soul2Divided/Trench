@@ -1,0 +1,46 @@
+<section class="datos-perfil card" aria-labelledby="nombre-perfil">
+    <div class="datos-perfil__presentacion">
+        <span class="avatar datos-perfil__foto" aria-hidden="true">{{ usuario().iniciales }}</span>
+
+        <div class="datos-perfil__identidad">
+            <h2 id="nombre-perfil">{{ usuario().nombre }} {{ usuario().apellido }}</h2>
+            <p class="datos-perfil__usuario">&#64;{{ usuario().usuario }}</p>
+            <p class="datos-perfil__descripcion">{{ usuario().descripcion }}</p>
+        </div>
+
+        <button class="button button--primary datos-perfil__editar" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                <path d="m16 3 5 5-12 12-6 1 1-6ZM13 6l5 5" />
+            </svg>
+
+            Editar perfil
+        </button>
+    </div>
+
+    <dl class="datos-perfil__detalles">
+        <div>
+            <dt>Nombre</dt>
+            <dd>{{ usuario().nombre }}</dd>
+        </div>
+
+        <div>
+            <dt>Apellido</dt>
+            <dd>{{ usuario().apellido }}</dd>
+        </div>
+
+        <div>
+            <dt>Correo electrónico</dt>
+            <dd>{{ usuario().correo }}</dd>
+        </div>
+
+        <div>
+            <dt>Fecha de nacimiento</dt>
+            <dd>{{ usuario().fechaNacimiento }}</dd>
+        </div>
+    </dl>
+
+    <div class="datos-perfil__resumen">
+        <span class="datos-perfil__contador">{{ cantidadPublicaciones() }} publicaciones</span>
+        <span>Tu música, tus historias, tu espacio.</span>
+    </div>
+</section>

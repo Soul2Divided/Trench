@@ -1,0 +1,50 @@
+:host {
+    display: block;
+}
+
+.mi-perfil,
+.mis-publicaciones {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.mi-perfil h1 {
+    margin: 0;
+    font-size: 1.375rem;
+}
+
+.mis-publicaciones__encabezado {
+    margin-top: 0.5rem;
+
+    h2 {
+        margin: 0;
+        font-size: 1.125rem;
+    }
+
+    p {
+        margin: 0.5rem 0 0;
+        font-size: 0.8125rem;
+    }
+}
+
+.comentarios-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-primary);
+
+    h3 {
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 800;
+    }
+}
+
+.comentarios-perfil__vacio {
+    margin: 0;
+    font-size: 0.8125rem;
+}

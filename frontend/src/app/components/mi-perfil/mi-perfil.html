@@ -1,0 +1,34 @@
+<div class="pagina-social fondo-escamas fondo-escamas--laterales">
+    <app-navbar />
+
+    <div class="distribucion-social page-container">
+        <app-panel-usuario />
+
+        <main class="mi-perfil" aria-labelledby="titulo-mi-perfil">
+            <h1 id="titulo-mi-perfil">Mi perfil</h1>
+
+            <app-datos-perfil [usuario]="usuario" [cantidadPublicaciones]="publicaciones.length" />
+
+            <section class="mis-publicaciones" aria-labelledby="titulo-mis-publicaciones">
+                <div class="mis-publicaciones__encabezado">
+                    <h2 id="titulo-mis-publicaciones">Mis últimas publicaciones</h2>
+                    <p>Tus últimas tres historias compartidas.</p>
+                </div>
+
+                @for (publicacion of publicaciones; track publicacion.id) {
+                    <app-tarjeta-publicacion [publicacion]="publicacion">
+                        <section class="comentarios-perfil" [attr.aria-labelledby]="'comentarios-' + publicacion.id">
+                            <h3 [id]="'comentarios-' + publicacion.id">Comentarios</h3>
+
+                            @for (comentario of publicacion.comentariosVisibles; track comentario.id) {
+                                <app-comentario [comentario]="comentario" />
+                            } @empty {
+                                <p class="comentarios-perfil__vacio">Esta publicación todavía no tiene comentarios.</p>
+                            }
+                        </section>
+                    </app-tarjeta-publicacion>
+                }
+            </section>
+        </main>
+    </div>
+</div>

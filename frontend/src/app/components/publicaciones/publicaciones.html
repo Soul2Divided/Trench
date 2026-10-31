@@ -1,0 +1,39 @@
+<div class="pagina-social fondo-escamas fondo-escamas--laterales">
+    <app-navbar />
+
+    <div class="distribucion-social page-container">
+        <app-panel-usuario />
+
+        <main class="contenido-publicaciones" aria-labelledby="titulo-publicaciones">
+            <app-crear-publicacion />
+
+            <div class="encabezado-listado">
+                <h1 id="titulo-publicaciones">Publicaciones</h1>
+
+                <div class="ordenamiento">
+                    <label for="orden-publicaciones">Ordenar por</label>
+
+                    <select class="form-control" id="orden-publicaciones">
+                        <option>Más recientes</option>
+                        <option>Más me gusta</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="listado-publicaciones">
+                @for (publicacion of publicaciones; track publicacion.id) {
+                    <app-tarjeta-publicacion [publicacion]="publicacion" />
+                }
+            </div>
+
+            <nav class="paginacion" aria-label="Páginas de publicaciones">
+                <button class="button" type="button" disabled>Anterior</button>
+                <button class="button button--accent" type="button" aria-current="page" aria-label="Página 1">1</button>
+                <button class="button" type="button" aria-label="Página 2">2</button>
+                <button class="button" type="button">Siguiente</button>
+            </nav>
+        </main>
+    </div>
+</div>
+
+

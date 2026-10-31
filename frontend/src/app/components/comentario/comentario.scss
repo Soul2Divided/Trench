@@ -1,0 +1,54 @@
+:host {
+    display: block;
+}
+
+.comentario {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.comentario__avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.6875rem;
+}
+
+.comentario__contenido {
+    min-width: 0;
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: var(--border-default);
+    border-radius: var(--radius-control);
+    background-color: var(--color-white);
+    overflow-wrap: anywhere;
+
+    p {
+        margin: 0.5rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.7;
+    }
+}
+
+.comentario__cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.375rem 0.75rem;
+}
+
+.comentario__nombre {
+    font-size: 0.8125rem;
+    font-weight: 800;
+}
+
+.comentario__fecha,
+.comentario__estado {
+    font-size: 0.6875rem;
+}
+
+.comentario__estado {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-style: italic;
+}

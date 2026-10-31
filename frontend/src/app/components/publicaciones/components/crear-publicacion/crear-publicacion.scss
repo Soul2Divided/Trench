@@ -1,0 +1,49 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.crear-publicacion {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+
+    textarea {
+        resize: vertical;
+    }
+}
+
+.crear-publicacion__cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    h2 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    p {
+        margin: 0.25rem 0 0;
+        font-size: 0.75rem;
+    }
+}
+
+.crear-publicacion__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    .button {
+        font-size: 0.8125rem;
+    }
+
+    svg {
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+}
+
+

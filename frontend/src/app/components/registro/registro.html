@@ -1,0 +1,252 @@
+@let campos = registroForm.controls;
+
+<form
+    class="registro-form"
+    aria-labelledby="login-title"
+    [formGroup]="registroForm"
+    (ngSubmit)="enviarRegistro()"
+    novalidate
+>
+    <div class="registro-form__fila">
+        <div class="form-field">
+            @let errorNombre = mensajeError(campos.nombre, 'Ingresá tu nombre.');
+
+            <label class="form-label" for="registro-nombre">Nombre</label>
+
+            <input
+                class="form-control"
+                id="registro-nombre"
+                name="nombre"
+                formControlName="nombre"
+                autocomplete="given-name"
+                placeholder="Tu nombre"
+                required
+                [attr.aria-invalid]="errorNombre ? 'true' : null"
+                [attr.aria-describedby]="errorNombre ? 'registro-nombre-error' : null"
+                [class.form-control--shake]="intentandoEnviar() && !!errorNombre"
+                (animationend)="intentandoEnviar.set(false)"
+            >
+
+            @if (errorNombre) {
+                <p class="form-error" id="registro-nombre-error" aria-live="polite">{{ errorNombre }}</p>
+            }
+        </div>
+
+        <div class="form-field">
+            @let errorApellido = mensajeError(campos.apellido, 'Ingresá tu apellido.');
+
+            <label class="form-label" for="registro-apellido">Apellido</label>
+
+            <input
+                class="form-control"
+                id="registro-apellido"
+                name="apellido"
+                formControlName="apellido"
+                autocomplete="family-name"
+                placeholder="Tu apellido"
+                required
+                [attr.aria-invalid]="errorApellido ? 'true' : null"
+                [attr.aria-describedby]="errorApellido ? 'registro-apellido-error' : null"
+                [class.form-control--shake]="intentandoEnviar() && !!errorApellido"
+                (animationend)="intentandoEnviar.set(false)"
+            >
+
+            @if (errorApellido) {
+                <p class="form-error" id="registro-apellido-error" aria-live="polite">{{ errorApellido }}</p>
+            }
+        </div>
+    </div>
+
+    <div class="form-field">
+        @let errorEmail = mensajeError(campos.email, 'Ingresá tu correo electrónico.');
+
+        <label class="form-label" for="registro-email">Correo electrónico</label>
+
+        <input
+            class="form-control"
+            id="registro-email"
+            name="email"
+            formControlName="email"
+            type="email"
+            autocomplete="email"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="tu.correo@musica.com"
+            required
+            [attr.aria-invalid]="errorEmail ? 'true' : null"
+            [attr.aria-describedby]="errorEmail ? 'registro-email-ayuda registro-email-error' : 'registro-email-ayuda'"
+            [class.form-control--shake]="intentandoEnviar() && !!errorEmail"
+            (blur)="normalizarEmail()"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        <p class="form-hint" id="registro-email-ayuda">Vas a usar este correo para iniciar sesión.</p>
+
+        @if (errorEmail) {
+            <p class="form-error" id="registro-email-error" aria-live="polite">{{ errorEmail }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorUsuario = mensajeError(campos.usuario, 'Ingresá tu nombre de usuario.');
+
+        <label class="form-label" for="registro-usuario">Nombre de usuario</label>
+
+        <input
+            class="form-control"
+            id="registro-usuario"
+            name="usuario"
+            formControlName="usuario"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Cómo querés que te conozcan"
+            required
+            [attr.aria-invalid]="errorUsuario ? 'true' : null"
+            [attr.aria-describedby]="errorUsuario ? 'registro-usuario-error' : null"
+            [class.form-control--shake]="intentandoEnviar() && !!errorUsuario"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        @if (errorUsuario) {
+            <p class="form-error" id="registro-usuario-error" aria-live="polite">{{ errorUsuario }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorPassword = mensajeError(campos.password, 'Ingresá una contraseña.');
+
+        <label class="form-label" for="registro-password">Contraseña</label>
+
+        <input
+            class="form-control"
+            id="registro-password"
+            name="password"
+            formControlName="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Creá tu contraseña"
+            required
+            [attr.aria-invalid]="errorPassword ? 'true' : null"
+            [attr.aria-describedby]="errorPassword ? 'registro-password-ayuda registro-password-error' : 'registro-password-ayuda'"
+            [class.form-control--shake]="intentandoEnviar() && !!errorPassword"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        <p class="form-hint" id="registro-password-ayuda">Al menos 8 caracteres, una mayúscula y un número.</p>
+
+        @if (errorPassword) {
+            <p class="form-error" id="registro-password-error" aria-live="polite">{{ errorPassword }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorRepetir = mensajeError(campos.repetirPassword, 'Repetí tu contraseña.');
+
+        <label class="form-label" for="registro-repetir-password">Repetir contraseña</label>
+
+        <input
+            class="form-control"
+            id="registro-repetir-password"
+            name="repetirPassword"
+            formControlName="repetirPassword"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Volvé a escribir tu contraseña"
+            required
+            [attr.aria-invalid]="errorRepetir ? 'true' : null"
+            [attr.aria-describedby]="errorRepetir ? 'registro-repetir-password-error' : null"
+            [class.form-control--shake]="intentandoEnviar() && !!errorRepetir"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        @if (errorRepetir) {
+            <p class="form-error" id="registro-repetir-password-error" aria-live="polite">{{ errorRepetir }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorFecha = mensajeError(campos.fechaNacimiento, 'Ingresá tu fecha de nacimiento.');
+
+        <label class="form-label" for="registro-fecha">Fecha de nacimiento</label>
+
+        <input
+            class="form-control"
+            id="registro-fecha"
+            name="fechaNacimiento"
+            formControlName="fechaNacimiento"
+            type="date"
+            autocomplete="bday"
+            [max]="hoy"
+            required
+            [attr.aria-invalid]="errorFecha ? 'true' : null"
+            [attr.aria-describedby]="errorFecha ? 'registro-fecha-error' : null"
+            [class.form-control--shake]="intentandoEnviar() && !!errorFecha"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        @if (errorFecha) {
+            <p class="form-error" id="registro-fecha-error" aria-live="polite">{{ errorFecha }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorDescripcion = mensajeError(campos.descripcion, 'Escribí una breve descripción.');
+
+        <label class="form-label" for="registro-descripcion">Descripción breve</label>
+
+        <textarea
+            class="form-control"
+            id="registro-descripcion"
+            name="descripcion"
+            formControlName="descripcion"
+            rows="3"
+            maxlength="250"
+            placeholder="Contanos un poco de vos y de la música que te acompaña."
+            required
+            [attr.aria-invalid]="errorDescripcion ? 'true' : null"
+            [attr.aria-describedby]="errorDescripcion ? 'registro-descripcion-ayuda registro-descripcion-error' : 'registro-descripcion-ayuda'"
+            [class.form-control--shake]="intentandoEnviar() && !!errorDescripcion"
+            (animationend)="intentandoEnviar.set(false)"
+        ></textarea>
+
+        <p class="form-hint" id="registro-descripcion-ayuda">{{ campos.descripcion.value.length }}/250 caracteres</p>
+
+        @if (errorDescripcion) {
+            <p class="form-error" id="registro-descripcion-error" aria-live="polite">{{ errorDescripcion }}</p>
+        }
+    </div>
+
+    <div class="form-field">
+        @let errorImagen = mensajeError(campos.imagen, 'Elegí tu imagen de perfil.');
+
+        <label class="form-label" for="registro-imagen">Imagen de perfil <span>(opcional)</span></label>
+
+        <input
+            class="form-control"
+            id="registro-imagen"
+            name="imagen"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            [attr.aria-invalid]="errorImagen ? 'true' : null"
+            [attr.aria-describedby]="errorImagen ? 'registro-imagen-ayuda registro-imagen-error' : 'registro-imagen-ayuda'"
+            [class.form-control--shake]="intentandoEnviar() && !!errorImagen"
+            (change)="seleccionarImagen($event)"
+            (animationend)="intentandoEnviar.set(false)"
+        >
+
+        <p class="form-hint" id="registro-imagen-ayuda">JPG, PNG o WebP. Hasta 5 MB.</p>
+
+        @if (errorImagen) {
+            <p class="form-error" id="registro-imagen-error" aria-live="polite">{{ errorImagen }}</p>
+        }
+    </div>
+
+    <button class="button button--primary button--full registro-submit" type="submit">
+        Crear cuenta
+    </button>
+</form>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal [mensaje]="mensaje" (cerrado)="mensajeModal.set(null)" />
+}
