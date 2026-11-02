@@ -18,7 +18,7 @@ export interface UsuarioAutenticado {
 export class AutenticacionService {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/autenticacion';
+    private readonly url = 'https://trench-sand.vercel.app/autenticacion';
 
     login(correo: string, contrasena: string): Promise<UsuarioAutenticado> {
         return firstValueFrom(
