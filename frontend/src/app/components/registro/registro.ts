@@ -1,6 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, inject, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { AutenticacionService } from '../../services/autenticacion.service';
 import { MensajeModal, Modal } from '../modal/modal';
 import {
     contrasenasCoinciden,
@@ -20,7 +22,9 @@ import {
 export class Registro {
     private readonly formularios = inject(NonNullableFormBuilder);
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly autenticacion = inject(AutenticacionService);
 
+    protected readonly enviando = signal(false);
     protected readonly intentandoEnviar = signal(false);
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
     protected readonly hoy = this.fechaHoy();
@@ -34,7 +38,7 @@ export class Registro {
         repetirPassword: ['', Validators.required],
         fechaNacimiento: ['', [Validators.required, fechaNacimientoValida]],
         descripcion: ['', [textoObligatorio, Validators.maxLength(250)]],
-        imagen: this.formularios.control<File | null>(null, imagenPerfilValida),
+        imagen: this.formularios.control<File | null>(null, [Validators.required, imagenPerfilValida]),
         perfil: this.formularios.control<'usuario'>('usuario'),
     }, { validators: contrasenasCoinciden });
 
@@ -68,7 +72,11 @@ export class Registro {
         imagen.markAsTouched();
     }
 
-    protected enviarRegistro(): void {
+    protected async enviarRegistro(): Promise<void> {
+        if (this.enviando()) {
+            return;
+        }
+
         this.normalizarEmail();
         this.registroForm.markAllAsTouched();
 
@@ -87,10 +95,76 @@ export class Registro {
             return;
         }
 
+        const datos = this.registroForm.getRawValue();
+
+        if (!datos.imagen) {
+            return;
+        }
+
+        const formulario = new FormData();
+
+        formulario.append('nombre', datos.nombre);
+        formulario.append('apellido', datos.apellido);
+        formulario.append('correo', datos.email);
+        formulario.append('nombreUsuario', datos.usuario);
+        formulario.append('contrasena', datos.password);
+        formulario.append('repetirContrasena', datos.repetirPassword);
+        formulario.append('fechaNacimiento', datos.fechaNacimiento);
+        formulario.append('descripcion', datos.descripcion);
+        formulario.append('imagen', datos.imagen);
+
+        this.enviando.set(true);
+        this.mensajeModal.set(null);
+
+        try {
+            await this.autenticacion.registrar(formulario);
+
+            this.registroForm.reset();
+            this.elemento.nativeElement.querySelector<HTMLFormElement>('form')?.reset();
+            this.intentandoEnviar.set(false);
+
+            this.mensajeModal.set({
+                tipo: 'success',
+                titulo: 'Cuenta creada',
+                mensaje: 'Tu cuenta se creó correctamente. Ya podés iniciar sesión con tu correo y contraseña.',
+            });
+        } catch (error: unknown) {
+            this.mostrarErrorRegistro(error);
+        } finally {
+            this.enviando.set(false);
+        }
+    }
+
+    private mostrarErrorRegistro(error: unknown): void {
+        let mensaje = 'No pudimos crear tu cuenta. Intentá nuevamente.';
+
+        if (error instanceof HttpErrorResponse) {
+            if (error.status === 0) {
+                mensaje = 'No pudimos conectar con el servidor. Revisá que el backend esté iniciado y que tengas conexión.';
+            } else if (error.status === 400 || error.status === 409) {
+                const detalle: unknown = error.error?.message;
+
+                mensaje = error.status === 409
+                    ? 'El correo o el nombre de usuario ya está registrado.'
+                    : 'Los datos enviados no son válidos. Revisá los campos y la imagen.';
+
+                if (typeof detalle === 'string') {
+                    mensaje = detalle;
+                } else if (Array.isArray(detalle) && detalle.length > 0
+                    && detalle.every(item => typeof item === 'string')) {
+                    mensaje = detalle.join(' ');
+                }
+            } else if (error.status === 413) {
+                mensaje = 'La imagen es demasiado grande. Elegí un archivo de menos de 5 MiB.';
+            } else if (error.status === 502) {
+                mensaje = 'No pudimos subir tu imagen de perfil. Intentá nuevamente.';
+            }
+        }
+
         this.mensajeModal.set({
-            tipo: 'info',
-            titulo: 'El registro todavía no está disponible',
-            mensaje: 'Los datos tienen un formato válido. La creación de tu cuenta estará disponible cuando se conecte el servicio de registro.',
+            tipo: 'error',
+            titulo: 'No se pudo crear la cuenta',
+            mensaje,
         });
     }
 

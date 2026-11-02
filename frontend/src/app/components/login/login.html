@@ -13,6 +13,7 @@
                     type="button"
                     [class.auth-navigation__item--active]="modo() === 'login'"
                     [attr.aria-pressed]="modo() === 'login'"
+                    [disabled]="enviando()"
                     (click)="cambiarModo('login')"
                 >
                     Iniciar sesión
@@ -23,6 +24,7 @@
                     type="button"
                     [class.auth-navigation__item--active]="modo() === 'registro'"
                     [attr.aria-pressed]="modo() === 'registro'"
+                    [disabled]="enviando()"
                     (click)="cambiarModo('registro')"
                 >
                     Registrarse
@@ -52,6 +54,7 @@
                             spellcheck="false"
                             placeholder="tu.correo@musica.com"
                             required
+                            [readOnly]="enviando()"
                             [attr.aria-invalid]="mensajeError(loginForm.controls.email) ? 'true' : null"
                             [attr.aria-describedby]="mensajeError(loginForm.controls.email) ? 'login-email-error' : null"
                             [class.form-control--shake]="intentandoEnviar() && !!mensajeError(loginForm.controls.email)"
@@ -76,6 +79,7 @@
                             autocomplete="current-password"
                             placeholder="Ingresá tu contraseña"
                             required
+                            [readOnly]="enviando()"
                             [attr.aria-invalid]="mensajeError(loginForm.controls.password) ? 'true' : null"
                             [attr.aria-describedby]="mensajeError(loginForm.controls.password) ? 'login-password-error' : null"
                             [class.form-control--shake]="intentandoEnviar() && !!mensajeError(loginForm.controls.password)"
@@ -87,13 +91,18 @@
                         }
                     </div>
 
-                    <button class="button button--primary button--full login-submit" type="submit">
+                    <button
+                        class="button button--primary button--full login-submit"
+                        type="submit"
+                        [disabled]="enviando()"
+                        [attr.aria-busy]="enviando()"
+                    >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="12" cy="12" r="9" />
                             <path d="m10 8 6 4-6 4Z" stroke-linejoin="round" />
                         </svg>
 
-                        Iniciar sesión
+                        {{ enviando() ? 'Ingresando...' : 'Iniciar sesión' }}
                     </button>
                 </form>
             }

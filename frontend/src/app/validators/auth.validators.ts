@@ -57,7 +57,7 @@ export const imagenPerfilValida: ValidatorFn = (control: AbstractControl): Valid
         return { formatoImagen: true };
     }
 
-    return archivo.size > 0 && archivo.size <= 5 * 1024 * 1024 ? null : { tamanoImagen: true };
+    return archivo.size > 0 && archivo.size < 5 * 1024 * 1024 ? null : { tamanoImagen: true };
 };
 
 export function errorFormulario(control: AbstractControl, obligatorio: string): string {
@@ -90,7 +90,7 @@ export function errorFormulario(control: AbstractControl, obligatorio: string): 
     }
 
     if (control.hasError('tamanoImagen')) {
-        return 'Elegí una imagen que no esté vacía y pese hasta 5 MB.';
+        return 'Elegí una imagen que no esté vacía y pese menos de 5 MiB.';
     }
 
     return '';
