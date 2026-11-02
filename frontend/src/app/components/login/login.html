@@ -52,7 +52,7 @@
                             autocomplete="username"
                             autocapitalize="none"
                             spellcheck="false"
-                            placeholder="tu.correo@musica.com"
+                            placeholder="tu.correo@email.com"
                             required
                             [readOnly]="enviando()"
                             [attr.aria-invalid]="mensajeError(loginForm.controls.email) ? 'true' : null"
@@ -106,10 +106,6 @@
                     </button>
                 </form>
             }
-
-            <a class="button button--full login-explorar" routerLink="/publicaciones">
-                Explorar publicaciones
-            </a>
 
             <div class="login-card-footer" aria-hidden="true">
                 <span></span>
