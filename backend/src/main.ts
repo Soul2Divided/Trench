@@ -1,12 +1,8 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-    const logger = new Logger('Bootstrap');
-
-    logger.log(`Iniciando backend con Node ${process.version}.`);
-
     const app = await NestFactory.create(AppModule);
 
     app.enableCors({
@@ -29,7 +25,6 @@ async function bootstrap() {
     );
 
     await app.listen(process.env.PORT ?? 3000);
-
-    logger.log('Backend listo para recibir peticiones.');
 }
-await bootstrap();
+
+void bootstrap();
