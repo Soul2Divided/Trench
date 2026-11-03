@@ -13,7 +13,7 @@
                     type="button"
                     [class.auth-navigation__item--active]="modo() === 'login'"
                     [attr.aria-pressed]="modo() === 'login'"
-                    [disabled]="enviando()"
+                    [disabled]="enviando() || registrando()"
                     (click)="cambiarModo('login')"
                 >
                     Iniciar sesión
@@ -24,7 +24,7 @@
                     type="button"
                     [class.auth-navigation__item--active]="modo() === 'registro'"
                     [attr.aria-pressed]="modo() === 'registro'"
-                    [disabled]="enviando()"
+                    [disabled]="enviando() || registrando()"
                     (click)="cambiarModo('registro')"
                 >
                     Registrarse
@@ -37,8 +37,17 @@
             </div>
 
             @if (modo() === 'registro') {
-                <app-registro></app-registro>
+                <app-registro
+                    (cargando)="registrando.set($event)"
+                    (registrado)="completarRegistro($event)"
+                ></app-registro>
             } @else {
+                @if (cuentaCreada()) {
+                    <p class="login-confirmacion" role="status">
+                        Cuenta creada. Ingresá con tu correo y contraseña.
+                    </p>
+                }
+
                 <form class="login-form" aria-labelledby="login-title" [formGroup]="loginForm" (ngSubmit)="enviarLogin()" novalidate>
                     <div class="form-field">
                         <label class="form-label" for="login-email">Correo electrónico</label>
@@ -120,6 +129,13 @@
     </footer>
 
 </div>
+
+@if (enviando() || registrando()) {
+    <app-loader
+        [titulo]="registrando() ? 'Creando tu cuenta' : 'Entrando a Trench'"
+        [mensaje]="registrando() ? 'Preparate para ser parte de Trench!' : 'Iniciando sesión. Por favor, esperá unos segundos...'"
+    />
+}
 
 @if (mensajeModal(); as mensaje) {
     <app-modal [mensaje]="mensaje" (cerrado)="mensajeModal.set(null)" />

@@ -1,15 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, inject, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { errorFormulario, passwordValida } from '../../validators/auth.validators';
 import { MensajeModal, Modal } from '../modal/modal';
 import { Registro } from '../registro/registro';
+import { Loader } from '../loader/loader';
 
 @Component({
-    imports: [ReactiveFormsModule, RouterLink, Registro, Modal],
+    imports: [ReactiveFormsModule, Registro, Modal, Loader],
     selector: 'app-login',
     styleUrl: './login.scss',
     templateUrl: './login.html',
@@ -21,6 +22,8 @@ export class Login {
     private readonly router = inject(Router);
 
     protected readonly enviando = signal(false);
+    protected readonly registrando = signal(false);
+    protected readonly cuentaCreada = signal(false);
     protected readonly intentandoEnviar = signal(false);
     protected readonly modo = signal<'login' | 'registro'>('login');
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
@@ -37,13 +40,20 @@ export class Login {
     }
 
     protected cambiarModo(modo: 'login' | 'registro'): void {
-        if (this.modo() === modo || this.enviando()) {
+        if (this.modo() === modo || this.enviando() || this.registrando()) {
             return;
         }
 
         this.modo.set(modo);
         this.loginForm.reset();
         this.intentandoEnviar.set(false);
+        this.cuentaCreada.set(false);
+    }
+
+    protected completarRegistro(correo: string): void {
+        this.cambiarModo('login');
+        this.loginForm.controls.email.setValue(correo);
+        this.cuentaCreada.set(true);
     }
 
     protected normalizarEmail(): void {
@@ -72,12 +82,16 @@ export class Login {
         this.enviando.set(true);
         this.mensajeModal.set(null);
 
+        const esperaMinima = new Promise<void>(resolver => setTimeout(resolver, 4000));
+
         try {
             await this.autenticacion.login(datos.email, datos.password);
+            await esperaMinima;
 
             this.loginForm.controls.password.reset();
             await this.router.navigate(['/publicaciones']);
         } catch (error: unknown) {
+            await esperaMinima;
             this.mostrarErrorLogin(error);
         } finally {
             this.enviando.set(false);

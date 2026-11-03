@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, output, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AutenticacionService } from '../../services/autenticacion.service';
@@ -20,6 +20,9 @@ import {
     styleUrl: './registro.scss',
 })
 export class Registro {
+    readonly registrado = output<string>();
+    readonly cargando = output<boolean>();
+
     private readonly formularios = inject(NonNullableFormBuilder);
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly autenticacion = inject(AutenticacionService);
@@ -115,23 +118,30 @@ export class Registro {
 
         this.enviando.set(true);
         this.mensajeModal.set(null);
+        this.cargando.emit(true);
+
+        const esperaMinima = new Promise<void>(resolver => setTimeout(resolver, 1000));
+        let cuentaCreada = false;
 
         try {
             await this.autenticacion.registrar(formulario);
+            await esperaMinima;
 
             this.registroForm.reset();
             this.elemento.nativeElement.querySelector<HTMLFormElement>('form')?.reset();
             this.intentandoEnviar.set(false);
 
-            this.mensajeModal.set({
-                tipo: 'success',
-                titulo: 'Cuenta creada',
-                mensaje: 'Tu cuenta se creó correctamente. Ya podés iniciar sesión con tu correo y contraseña.',
-            });
+            cuentaCreada = true;
         } catch (error: unknown) {
+            await esperaMinima;
             this.mostrarErrorRegistro(error);
         } finally {
             this.enviando.set(false);
+            this.cargando.emit(false);
+        }
+
+        if (cuentaCreada) {
+            this.registrado.emit(datos.email);
         }
     }
 

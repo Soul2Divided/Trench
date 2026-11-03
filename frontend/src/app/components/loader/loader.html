@@ -1,0 +1,35 @@
+<dialog
+    #dialogo
+    class="loader"
+    [attr.aria-label]="titulo()"
+    aria-busy="true"
+    (cancel)="mantenerAbierto($event)"
+>
+    <div class="loader__contenido">
+        <span class="loader__marca" aria-hidden="true">TRENCH</span>
+
+        <div class="loader__tocadiscos" aria-hidden="true">
+            <div class="loader__vinilo">
+                <div class="loader__etiqueta">
+                    <span>TRENCH</span>
+                    <span class="loader__eje"></span>
+                    <small>SIDE A · 33 RPM</small>
+                </div>
+            </div>
+
+            <span class="loader__brazo"></span>
+        </div>
+
+        <div class="loader__texto" role="status" aria-live="polite" aria-atomic="true">
+            <h2>{{ titulo() }}</h2>
+
+            <p>{{ mensaje() }}</p>
+        </div>
+
+        <div class="loader__ritmo" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</dialog>

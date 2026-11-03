@@ -100,6 +100,16 @@
     }
 }
 
+.login-confirmacion {
+    margin: 0 0 1.25rem;
+    padding: 0.875rem 1rem;
+    border: var(--border-default);
+    border-radius: var(--radius-control);
+    background-color: var(--color-accent);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
 .login-submit {
     margin-top: 0.5rem;
     text-transform: uppercase;
