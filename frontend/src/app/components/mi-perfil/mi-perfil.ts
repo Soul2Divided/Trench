@@ -1,97 +1,108 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { finalize, Subscription } from 'rxjs';
 
-import { Comentario, DatosComentario } from '../comentario/comentario';
+import { Publicacion } from '../../models/publicacion';
+import { AutenticacionService, UsuarioAutenticado } from '../../services/autenticacion.service';
+import { PublicacionesService } from '../../services/publicaciones.service';
+import { UsuariosService } from '../../services/usuarios.service';
+import { ComentariosPublicacion } from '../comentarios-publicacion/comentarios-publicacion';
 import { Navbar } from '../navbar/navbar';
 import { PanelUsuario } from '../panel-usuario/panel-usuario';
-import { TarjetaPublicacion, DatosPublicacion } from '../tarjeta-publicacion/tarjeta-publicacion';
-import { DatosPerfil, DatosUsuario } from './components/datos-perfil/datos-perfil';
-
-interface PublicacionConComentarios extends DatosPublicacion {
-    comentariosVisibles: DatosComentario[];
-}
+import { TarjetaPublicacion } from '../tarjeta-publicacion/tarjeta-publicacion';
+import { DatosPerfil } from './components/datos-perfil/datos-perfil';
 
 @Component({
     selector: 'app-mi-perfil',
-    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, Comentario],
+    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, ComentariosPublicacion, RouterLink],
     templateUrl: './mi-perfil.html',
     styleUrl: './mi-perfil.scss',
 })
-export class MiPerfil {
-    protected readonly usuario: DatosUsuario = {
-        nombre: 'Gabriel',
-        apellido: 'López',
-        usuario: 'gabriel',
-        iniciales: 'GL',
-        correo: 'gabriel@example.com',
-        fechaNacimiento: '15 de marzo de 2000',
-        descripcion: 'Siempre hay una canción para cada momento. Compartiendo discos, descubriendo bandas y volviendo a Twenty One Pilots.',
-    };
+export class MiPerfil implements OnInit {
+    private readonly autenticacion = inject(AutenticacionService);
+    private readonly usuariosService = inject(UsuariosService);
+    private readonly publicacionesService = inject(PublicacionesService);
+    private readonly destroyRef = inject(DestroyRef);
 
-    protected readonly publicaciones: PublicacionConComentarios[] = [
-        {
-            id: 2,
-            nombre: 'Gabriel López',
-            usuario: 'gabriel',
-            iniciales: 'GL',
-            fecha: 'Hace 1 hora',
-            titulo: 'Canciones para el camino',
-            mensaje: 'Estoy armando una playlist para esos viajes en los que solo querés mirar por la ventana y escuchar música. Arranco con Car Radio. ¿Qué canción sumarían ustedes?',
-            meGusta: 12,
-            comentarios: 2,
-            propia: true,
-            comentariosVisibles: [
-                {
-                    id: 1,
-                    nombre: 'Sofía Martínez',
-                    iniciales: 'SM',
-                    fecha: 'Hace 10 minutos',
-                    mensaje: 'Sumaría Intro de The xx. Tiene algo que hace que cualquier viaje se sienta distinto.',
+    private peticionUsuario: Subscription | null = null;
+    private peticionPublicaciones: Subscription | null = null;
+
+    protected readonly sesion = this.autenticacion.usuarioActual;
+    protected readonly usuario = signal<UsuarioAutenticado | null>(null);
+    protected readonly publicaciones = signal<Publicacion[]>([]);
+    protected readonly totalPublicaciones = signal<number | null>(null);
+    protected readonly cargandoUsuario = signal(false);
+    protected readonly cargandoPublicaciones = signal(false);
+    protected readonly errorUsuario = signal(false);
+    protected readonly errorPublicaciones = signal(false);
+
+    ngOnInit(): void {
+        this.cargarUsuario();
+        this.cargarPublicaciones();
+    }
+
+    protected cargarUsuario(): void {
+        const id = this.sesion()?.id;
+
+        if (!id) {
+            return;
+        }
+
+        this.peticionUsuario?.unsubscribe();
+        this.cargandoUsuario.set(true);
+        this.errorUsuario.set(false);
+
+        this.peticionUsuario = this.usuariosService.obtenerPorId(id)
+            .pipe(
+                // takeUntilDestroyed cancela la suscripción si se destruye el componente, por ejemplo al navegar a otra pantalla
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this.cargandoUsuario.set(false)),
+            )
+            .subscribe({
+                next: usuario => {
+                    this.usuario.set(usuario);
+                    this.autenticacion.actualizarUsuario(usuario);
                 },
-                {
-                    id: 2,
-                    nombre: 'Lucas Fernández',
-                    iniciales: 'LF',
-                    fecha: 'Hace 40 minutos',
-                    mensaje: 'Para mí no puede faltar A Car, a Torch, a Death.',
-                    editado: true,
+                error: () => this.errorUsuario.set(true),
+            });
+    }
+
+    protected actualizarPerfil(usuarioActualizado: UsuarioAutenticado): void {
+        this.usuario.set(usuarioActualizado);
+        this.autenticacion.actualizarUsuario(usuarioActualizado);
+        this.cargarPublicaciones();
+    }
+
+    protected cargarPublicaciones(): void {
+        const usuarioId = this.sesion()?.id;
+
+        if (!usuarioId) {
+            return;
+        }
+
+        this.peticionPublicaciones?.unsubscribe();
+        this.cargandoPublicaciones.set(true);
+        this.errorPublicaciones.set(false);
+        this.totalPublicaciones.set(null);
+
+        this.peticionPublicaciones = this.publicacionesService.listar({
+            usuarioId,
+            offset: 0,
+            limit: 3,
+            orden: 'fecha',
+        })
+            .pipe(
+                // takeUntilDestroyed cancela la suscripción si se destruye el componente, por ejemplo al navegar a otra pantalla
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this.cargandoPublicaciones.set(false)),
+            )
+            .subscribe({
+                next: pagina => {
+                    this.publicaciones.set(pagina.publicaciones);
+                    this.totalPublicaciones.set(pagina.total);
                 },
-            ],
-        },
-        {
-            id: 3,
-            nombre: 'Gabriel López',
-            usuario: 'gabriel',
-            iniciales: 'GL',
-            fecha: 'Ayer',
-            titulo: 'Escuchar un disco sin hacer otra cosa',
-            mensaje: 'Hoy dejé el celular de lado y escuché un álbum entero. A veces hace falta frenar un poco para encontrar detalles que siempre estuvieron ahí.',
-            imagen: '/images/publicacion-musica.svg',
-            descripcionImagen: 'Ilustración de un disco de vinilo con la frase Un disco, mil lugares.',
-            meGusta: 19,
-            comentarios: 1,
-            propia: true,
-            comentariosVisibles: [
-                {
-                    id: 3,
-                    nombre: 'Sofía Martínez',
-                    iniciales: 'SM',
-                    fecha: 'Ayer',
-                    mensaje: 'Eso mismo hice el fin de semana. Escucharlo en orden cambia mucho la experiencia.',
-                },
-            ],
-        },
-        {
-            id: 4,
-            nombre: 'Gabriel López',
-            usuario: 'gabriel',
-            iniciales: 'GL',
-            fecha: 'Hace 3 días',
-            titulo: 'Ese primer recital',
-            mensaje: 'Hay canciones que después de escucharlas en vivo nunca vuelven a sonar igual. ¿Qué recital les quedó grabado para siempre?',
-            meGusta: 8,
-            comentarios: 0,
-            propia: true,
-            comentariosVisibles: [],
-        },
-    ];
+                error: () => this.errorPublicaciones.set(true),
+            });
+    }
 }

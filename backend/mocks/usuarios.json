@@ -1,0 +1,53 @@
+[
+    {
+        "_id": {
+            "$oid": "690000000000000000000001"
+        },
+        "nombre": "Sofía",
+        "apellido": "Martínez",
+        "correo": "sofia.mock@example.com",
+        "nombreUsuario": "sofia.mock",
+        "fechaNacimiento": {
+            "$date": "2001-05-12T00:00:00.000Z"
+        },
+        "descripcion": "Escuchando discos completos y buscando canciones para cada momento.",
+        "imagenPerfilUrl": "/images/publicacion-musica.svg",
+        "imagenPerfilPublicId": "mock/perfiles/sofia",
+        "perfil": "usuario",
+        "contrasenaHash": "$scrypt$ln=17,r=8,p=1$JK4Xpu3WcHOVNwaCG8L9XA$WAnu/LGmQlEMribpp+/ZB510dz2kwrqv29Yixjubqks"
+    },
+    {
+        "_id": {
+            "$oid": "690000000000000000000002"
+        },
+        "nombre": "Lucas",
+        "apellido": "Fernández",
+        "correo": "lucas.mock@example.com",
+        "nombreUsuario": "lucas.mock",
+        "fechaNacimiento": {
+            "$date": "1999-09-23T00:00:00.000Z"
+        },
+        "descripcion": "Fan de los recitales, las guitarras y las playlists para viajar.",
+        "imagenPerfilUrl": "/images/publicacion-musica.svg",
+        "imagenPerfilPublicId": "mock/perfiles/lucas",
+        "perfil": "usuario",
+        "contrasenaHash": "$scrypt$ln=17,r=8,p=1$ef09R6kFA9S7Zaa8MQleWg$s8YV2fKaEzLFVoyxaKeGFdU2YrTTNX7nxbtoMlEaZyk"
+    },
+    {
+        "_id": {
+            "$oid": "690000000000000000000003"
+        },
+        "nombre": "Martina",
+        "apellido": "Gómez",
+        "correo": "martina.mock@example.com",
+        "nombreUsuario": "martina.mock",
+        "fechaNacimiento": {
+            "$date": "2000-02-08T00:00:00.000Z"
+        },
+        "descripcion": "Descubriendo bandas nuevas y compartiendo recomendaciones musicales.",
+        "imagenPerfilUrl": "/images/publicacion-musica.svg",
+        "imagenPerfilPublicId": "mock/perfiles/martina",
+        "perfil": "administrador",
+        "contrasenaHash": "$scrypt$ln=17,r=8,p=1$bVVEQ3sLGmKkj3sGiHmYeA$P3cQQnG/Z9sVfy0PlSHCYpiA+yOwGJzDs7TYl7dvAS0"
+    }
+]

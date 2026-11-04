@@ -1,15 +1,17 @@
 <article class="publicacion card" [attr.aria-labelledby]="'titulo-publicacion-' + publicacion().id">
     <header class="publicacion__cabecera">
-        <span class="avatar" aria-hidden="true">{{ publicacion().iniciales }}</span>
+        <img class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="" loading="lazy">
 
         <div class="publicacion__autor">
-            <span class="publicacion__nombre">{{ publicacion().nombre }}</span>
-            <span class="publicacion__usuario">&#64;{{ publicacion().usuario }}</span>
-            <span class="publicacion__fecha">{{ publicacion().fecha }}</span>
+            <span class="publicacion__nombre">{{ publicacion().autor.nombre }} {{ publicacion().autor.apellido }}</span>
+            <span class="publicacion__usuario">&#64;{{ publicacion().autor.nombreUsuario }}</span>
+            <time class="publicacion__fecha" [attr.datetime]="publicacion().fechaCreacion">
+                {{ publicacion().fechaCreacion | date:'d MMM y, HH:mm' }}
+            </time>
         </div>
 
-        @if (publicacion().propia) {
-            <button class="publicacion__eliminar" type="button" aria-label="Eliminar publicación">
+        @if (propia()) {
+            <button class="publicacion__eliminar" type="button" aria-label="Eliminar publicación" [disabled]="eliminando()" (click)="solicitarEliminacion()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
                 </svg>
@@ -21,8 +23,8 @@
 
     <p class="publicacion__mensaje">{{ publicacion().mensaje }}</p>
 
-    @if (publicacion().imagen) {
-        <img class="publicacion__imagen" [src]="publicacion().imagen" [alt]="publicacion().descripcionImagen" loading="lazy">
+    @if (publicacion().imagenUrl) {
+        <img class="publicacion__imagen" [src]="publicacion().imagenUrl" [alt]="'Imagen de ' + publicacion().titulo" loading="lazy">
     }
 
     <footer class="publicacion__acciones">
@@ -45,3 +47,12 @@
 
     <ng-content />
 </article>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal
+        [mensaje]="mensaje"
+        [procesando]="eliminando()"
+        (confirmado)="eliminar()"
+        (cerrado)="mensajeModal.set(null)"
+    />
+}

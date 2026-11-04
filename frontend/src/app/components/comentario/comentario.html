@@ -1,10 +1,12 @@
 <article class="comentario">
-    <span class="avatar comentario__avatar" aria-hidden="true">{{ comentario().iniciales }}</span>
+    <img class="avatar comentario__avatar" [src]="comentario().autor.imagenPerfilUrl" alt="" loading="lazy">
 
     <div class="comentario__contenido">
         <header class="comentario__cabecera">
-            <span class="comentario__nombre">{{ comentario().nombre }}</span>
-            <span class="comentario__fecha">{{ comentario().fecha }}</span>
+            <span class="comentario__nombre">{{ comentario().autor.nombre }} {{ comentario().autor.apellido }}</span>
+            <time class="comentario__fecha" [attr.datetime]="comentario().fechaCreacion">
+                {{ comentario().fechaCreacion | date:'d MMM y, HH:mm' }}
+            </time>
         </header>
 
         <p>{{ comentario().mensaje }}</p>

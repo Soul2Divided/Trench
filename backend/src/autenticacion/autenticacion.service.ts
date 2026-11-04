@@ -14,12 +14,6 @@ export class AutenticacionService {
         private readonly cloudinaryService: CloudinaryService,
     ) { }
 
-    /**
-     * Registra un usuario con los datos ya validados y una imagen de perfil.
-     * Si falla el guardado, intenta eliminar la imagen subida.
-     *
-     * @returns Los datos del usuario creado, sin el hash de su contraseña.
-     */
     async registerUser(registerDto: RegisterUsuarioDto, imagen: Express.Multer.File) {
         if (registerDto.contrasena !== registerDto.repetirContrasena) {
             throw new BadRequestException('Las contraseñas no coinciden.');
@@ -63,15 +57,19 @@ export class AutenticacionService {
             throw error;
         }
 
-        return this.obtenerDatosPublicos(usuario);
+        return {
+            id: usuario._id.toString(),
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            correo: usuario.correo,
+            nombreUsuario: usuario.nombreUsuario,
+            fechaNacimiento: usuario.fechaNacimiento,
+            descripcion: usuario.descripcion,
+            imagenPerfilUrl: usuario.imagenPerfilUrl,
+            perfil: usuario.perfil,
+        };
     }
 
-    /**
-     * Verifica el correo y la contraseña contra el hash guardado.
-     *
-     * @returns Los datos del usuario, sin contraseña ni hash.
-     * @throws UnauthorizedException si las credenciales son incorrectas.
-     */
     async loginUser(loginDto: LoginUsuarioDto) {
         const usuario = await this.usuariosService.findByCorreoConContrasena(loginDto.correo);
 
@@ -84,10 +82,6 @@ export class AutenticacionService {
             throw new UnauthorizedException('El correo o la contraseña son incorrectos.');
         }
 
-        return this.obtenerDatosPublicos(usuario);
-    }
-
-    private obtenerDatosPublicos(usuario: UsuarioDocument) {
         return {
             id: usuario._id.toString(),
             nombre: usuario.nombre,

@@ -30,6 +30,28 @@
     }
 }
 
+.crear-publicacion__campos {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.crear-publicacion__vista-previa {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(20rem, 40svh);
+    align-self: center;
+    border: var(--border-default);
+    border-radius: var(--radius-control);
+    object-fit: contain;
+    background-color: var(--color-white);
+}
+
 .crear-publicacion__acciones {
     display: flex;
     flex-wrap: wrap;

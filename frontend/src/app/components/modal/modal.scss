@@ -47,6 +47,17 @@
     text-transform: uppercase;
 }
 
+.modal__acciones {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .button {
+        flex: 1 1 8rem;
+    }
+}
+
 .modal__icono {
     display: grid;
     width: 4rem;

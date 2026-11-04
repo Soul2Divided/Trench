@@ -1,9 +1,11 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo } from 'mongoose';
 import type { Model } from 'mongoose';
 import { Usuario } from './schemas/usuario.schema.js';
 import type { UsuarioDocument } from './schemas/usuario.schema.js';
+import { CloudinaryService } from '../file/cloudinary.service.js';
+import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto.js';
 
 export interface DatosNuevoUsuario {
     nombre: string;
@@ -19,12 +21,111 @@ export interface DatosNuevoUsuario {
 
 @Injectable()
 export class UsuariosService {
+    private readonly logger = new Logger(UsuariosService.name);
+
     constructor(
         @InjectModel(Usuario.name) private readonly usuarioModel: Model<Usuario>,
+        private readonly cloudinaryService: CloudinaryService,
     ) {}
 
-    findById(id: string): Promise<UsuarioDocument | null> {
-        return this.usuarioModel.findById(id).exec();
+    async obtenerPorId(id: string) {
+        const usuario = await this.usuarioModel.findById(id).exec();
+
+        if (!usuario) {
+            throw new NotFoundException('El usuario no existe.');
+        }
+
+        return {
+            id: usuario._id.toString(),
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            correo: usuario.correo,
+            nombreUsuario: usuario.nombreUsuario,
+            fechaNacimiento: usuario.fechaNacimiento,
+            descripcion: usuario.descripcion,
+            imagenPerfilUrl: usuario.imagenPerfilUrl,
+            perfil: usuario.perfil,
+        };
+    }
+
+    async actualizarPerfil(id: string, datos: ActualizarPerfilDto, imagen?: Express.Multer.File) {
+        const usuario = await this.usuarioModel.findById(id).exec();
+
+        if (!usuario) {
+            throw new NotFoundException('El usuario no existe.');
+        }
+
+        const fechaNacimiento = new Date(`${datos.fechaNacimiento}T00:00:00`);
+        const hoy = new Date();
+
+        hoy.setHours(0, 0, 0, 0);
+
+        if (fechaNacimiento >= hoy) {
+            throw new BadRequestException('La fecha de nacimiento debe ser anterior a hoy.');
+        }
+
+        const nombreUsuario = datos.nombreUsuario.trim();
+
+        const usuarioConMismoNombre = await this.usuarioModel.findOne({
+            nombreUsuario,
+            _id: { $ne: id },
+        }).exec();
+
+        if (usuarioConMismoNombre) {
+            throw new ConflictException('El nombre de usuario ya está registrado.');
+        }
+
+        const imagenAnteriorPublicId = usuario.imagenPerfilPublicId;
+        const imagenSubida = imagen ? await this.cloudinaryService.subirImagen(imagen.buffer) : undefined;
+
+        usuario.nombre = datos.nombre.trim();
+        usuario.apellido = datos.apellido.trim();
+        usuario.nombreUsuario = nombreUsuario;
+        usuario.fechaNacimiento = new Date(datos.fechaNacimiento);
+        usuario.descripcion = datos.descripcion.trim();
+
+        if (imagenSubida) {
+            usuario.imagenPerfilUrl = imagenSubida.secure_url;
+            usuario.imagenPerfilPublicId = imagenSubida.public_id;
+        }
+
+        try {
+            await usuario.save();
+        } catch (error: unknown) {
+            if (imagenSubida) {
+                try {
+                    await this.cloudinaryService.eliminarImagen(imagenSubida.public_id);
+                } catch {
+                    this.logger.warn('No se pudo eliminar la imagen de una actualización de perfil fallida.');
+                }
+            }
+
+            if (error instanceof mongo.MongoServerError && error.code === 11000) {
+                throw new ConflictException('El nombre de usuario ya está registrado.');
+            }
+
+            throw error;
+        }
+
+        if (imagenSubida && imagenAnteriorPublicId && imagenAnteriorPublicId !== imagenSubida.public_id) {
+            try {
+                await this.cloudinaryService.eliminarImagen(imagenAnteriorPublicId);
+            } catch {
+                this.logger.warn('El perfil se actualizó, pero no se pudo eliminar la imagen anterior.');
+            }
+        }
+
+        return {
+            id: usuario._id.toString(),
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            correo: usuario.correo,
+            nombreUsuario: usuario.nombreUsuario,
+            fechaNacimiento: usuario.fechaNacimiento,
+            descripcion: usuario.descripcion,
+            imagenPerfilUrl: usuario.imagenPerfilUrl,
+            perfil: usuario.perfil,
+        };
     }
 
     findByCorreo(correo: string): Promise<UsuarioDocument | null> {

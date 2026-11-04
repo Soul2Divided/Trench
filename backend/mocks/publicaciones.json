@@ -1,0 +1,128 @@
+[
+    {
+        "_id": {
+            "$oid": "690100000000000000000001"
+        },
+        "autor": {
+            "$oid": "690000000000000000000001"
+        },
+        "titulo": "Un disco al que siempre vuelvo",
+        "mensaje": "Hoy volví a escuchar Trench de principio a fin. Siempre encuentro un detalle distinto, aunque ya conozca las canciones de memoria. ¿Qué disco les pasa algo parecido?",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-03T21:30:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-03T21:30:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000002"
+        },
+        "autor": {
+            "$oid": "690000000000000000000002"
+        },
+        "titulo": "Canciones para el camino",
+        "mensaje": "Estoy armando una playlist para un viaje largo. Arranqué con Car Radio y A Car, a Torch, a Death. Busco canciones que acompañen mirar por la ventana. ¿Cuál sumarían?",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-03T19:15:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-03T19:15:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000003"
+        },
+        "autor": {
+            "$oid": "690000000000000000000003"
+        },
+        "titulo": "Escuchar un álbum en orden",
+        "mensaje": "Probé escuchar un álbum sin mezclar las canciones ni saltear ninguna. Me gustó descubrir cómo cambia el clima entre un tema y el siguiente. A veces el orden cuenta su propia historia.",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-03T16:00:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-03T16:00:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000004"
+        },
+        "autor": {
+            "$oid": "690000000000000000000001"
+        },
+        "titulo": "Una canción para empezar el día",
+        "mensaje": "Mi elección de hoy fue Shy Away. Hay mañanas en las que una canción alcanza para cambiar el ánimo. Me gustaría conocer sus recomendaciones para arrancar el día con energía.",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-03T11:20:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-03T11:20:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000005"
+        },
+        "autor": {
+            "$oid": "690000000000000000000002"
+        },
+        "titulo": "Ese primer recital",
+        "mensaje": "Todavía recuerdo la primera vez que escuché en vivo a una banda que seguía desde hacía años. Después de ese día, sus canciones me llevan directo a ese momento. ¿Qué recital no se olvidan más?",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-02T22:45:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-02T22:45:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000006"
+        },
+        "autor": {
+            "$oid": "690000000000000000000003"
+        },
+        "titulo": "Recomendaciones fuera de lo habitual",
+        "mensaje": "Quiero salir un poco de las bandas que escucho siempre. Si tuvieran que recomendar un solo disco que les haya sorprendido, ¿cuál sería? Vale cualquier género.",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-02T18:10:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-02T18:10:00.000Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "690100000000000000000007"
+        },
+        "autor": {
+            "$oid": "690000000000000000000001"
+        },
+        "titulo": "La música también necesita una pausa",
+        "mensaje": "Hoy dejé el celular lejos y escuché música sin hacer otra cosa. Me di cuenta de que hacía mucho no prestaba atención a las letras. Me llevo esa costumbre para el próximo fin de semana.",
+        "activa": true,
+        "meGusta": 0,
+        "fechaCreacion": {
+            "$date": "2026-11-01T20:00:00.000Z"
+        },
+        "fechaActualizacion": {
+            "$date": "2026-11-01T20:00:00.000Z"
+        }
+    }
+]

@@ -12,7 +12,7 @@ export class CloudinaryService {
      *
      * @returns La URL HTTPS y el identificador de la imagen subida.
      */
-    subirImagen(buffer: Buffer): Promise<Pick<UploadApiResponse, 'secure_url' | 'public_id'>> {
+    subirImagen(buffer: Buffer, carpeta = 'trench/perfiles'): Promise<Pick<UploadApiResponse, 'secure_url' | 'public_id'>> {
         const configuracion = this.obtenerConfiguracion();
 
         return new Promise((resolve, reject) => {
@@ -20,11 +20,11 @@ export class CloudinaryService {
                 {
                     ...configuracion,
                     resource_type: 'image',
-                    folder: 'trench/perfiles',
+                    folder: carpeta,
                 },
                 (error, resultado) => {
                     if (error || !resultado) {
-                        reject(new BadGatewayException('No se pudo subir la imagen de perfil.'));
+                        reject(new BadGatewayException('No se pudo subir la imagen.'));
                         return;
                     }
 
@@ -36,14 +36,14 @@ export class CloudinaryService {
             );
 
             subida.on('error', () => {
-                reject(new BadGatewayException('No se pudo enviar la imagen de perfil.'));
+                reject(new BadGatewayException('No se pudo enviar la imagen.'));
             });
 
             subida.end(buffer);
         });
     }
 
-    /** Elimina la imagen cuando no se pudo completar el registro. */
+    /** Elimina una imagen cuando falla el guardado de los datos asociados. */
     async eliminarImagen(publicId: string): Promise<void> {
         const configuracion = this.obtenerConfiguracion();
 

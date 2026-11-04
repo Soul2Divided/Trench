@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, inject, output, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { MensajeModal, Modal } from '../modal/modal';
@@ -10,6 +12,7 @@ import {
     fechaNacimientoValida,
     imagenPerfilValida,
     passwordValida,
+    patronCorreo,
     textoObligatorio,
 } from '../../validators/auth.validators';
 
@@ -26,6 +29,7 @@ export class Registro {
     private readonly formularios = inject(NonNullableFormBuilder);
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly autenticacion = inject(AutenticacionService);
+    private readonly destroyRef = inject(DestroyRef);
 
     protected readonly enviando = signal(false);
     protected readonly intentandoEnviar = signal(false);
@@ -35,7 +39,7 @@ export class Registro {
     protected readonly registroForm = this.formularios.group({
         nombre: ['', textoObligatorio],
         apellido: ['', textoObligatorio],
-        email: ['', [Validators.required, Validators.email]],
+        email: ['', [Validators.required, Validators.email, Validators.pattern(patronCorreo)]],
         usuario: ['', textoObligatorio],
         password: ['', [Validators.required, passwordValida]],
         repetirPassword: ['', Validators.required],
@@ -75,7 +79,7 @@ export class Registro {
         imagen.markAsTouched();
     }
 
-    protected async enviarRegistro(): Promise<void> {
+    protected enviarRegistro(): void {
         if (this.enviando()) {
             return;
         }
@@ -120,29 +124,32 @@ export class Registro {
         this.mensajeModal.set(null);
         this.cargando.emit(true);
 
-        const esperaMinima = new Promise<void>(resolver => setTimeout(resolver, 1000));
         let cuentaCreada = false;
 
-        try {
-            await this.autenticacion.registrar(formulario);
-            await esperaMinima;
+        this.autenticacion.registrar(formulario)
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => {
+                    this.enviando.set(false);
 
-            this.registroForm.reset();
-            this.elemento.nativeElement.querySelector<HTMLFormElement>('form')?.reset();
-            this.intentandoEnviar.set(false);
+                    if (!this.destroyRef.destroyed) {
+                        this.cargando.emit(false);
 
-            cuentaCreada = true;
-        } catch (error: unknown) {
-            await esperaMinima;
-            this.mostrarErrorRegistro(error);
-        } finally {
-            this.enviando.set(false);
-            this.cargando.emit(false);
-        }
-
-        if (cuentaCreada) {
-            this.registrado.emit(datos.email);
-        }
+                        if (cuentaCreada) {
+                            this.registrado.emit(datos.email);
+                        }
+                    }
+                }),
+            )
+            .subscribe({
+                next: () => {
+                    this.registroForm.reset();
+                    this.elemento.nativeElement.querySelector<HTMLFormElement>('form')?.reset();
+                    this.intentandoEnviar.set(false);
+                    cuentaCreada = true;
+                },
+                error: (error: unknown) => this.mostrarErrorRegistro(error),
+            });
     }
 
     private mostrarErrorRegistro(error: unknown): void {

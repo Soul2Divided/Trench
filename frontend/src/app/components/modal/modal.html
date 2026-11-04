@@ -42,8 +42,16 @@
 
         <p id="modal-mensaje">{{ datos.mensaje }}</p>
 
-        <button class="button button--accent button--full" type="button" autofocus (click)="cerrar()">
-            {{ datos.textoBoton || 'Entendido' }}
-        </button>
+        <div class="modal__acciones" [attr.aria-busy]="procesando()">
+            <button class="button button--full" [class.button--accent]="!datos.textoConfirmar" type="button" autofocus [disabled]="procesando()" (click)="cerrar()">
+                {{ datos.textoBoton || 'Entendido' }}
+            </button>
+
+            @if (datos.textoConfirmar) {
+                <button class="button button--accent button--full" type="button" [disabled]="procesando()" (click)="confirmar()">
+                    {{ procesando() ? 'Eliminando…' : datos.textoConfirmar }}
+                </button>
+            }
+        </div>
     </div>
 </dialog>

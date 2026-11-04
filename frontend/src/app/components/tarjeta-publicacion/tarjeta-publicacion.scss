@@ -53,6 +53,11 @@
     color: var(--color-ink);
     cursor: pointer;
 
+    &:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
     svg {
         width: 1.25rem;
         height: 1.25rem;
@@ -67,10 +72,14 @@
 }
 
 .publicacion__imagen {
-    width: 100%;
+    width: auto;
     height: auto;
+    max-width: 100%;
+    max-height: min(24rem, 50svh);
+    margin-inline: auto;
     border: var(--border-default);
     border-radius: var(--radius-control);
+    object-fit: contain;
 }
 
 .publicacion__acciones {

@@ -6,6 +6,7 @@
     place-items: center;
     border: var(--border-default);
     border-radius: 50%;
+    object-fit: cover;
     background-color: var(--color-accent);
     color: var(--color-ink);
     box-shadow: var(--shadow-control);

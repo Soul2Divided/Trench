@@ -1,11 +1,15 @@
 <aside class="barra-lateral" aria-label="Perfil y navegación">
     <section class="perfil-resumen card" aria-label="Tu perfil">
-        <span class="avatar avatar--grande" aria-hidden="true">GL</span>
+        @if (usuario(); as datos) {
+            <img class="avatar avatar--grande" [src]="datos.imagenPerfilUrl" alt="">
 
-        <div>
-            <p class="perfil-resumen__nombre">Gabriel López</p>
-            <p class="perfil-resumen__usuario">&#64;gabriel</p>
-        </div>
+            <div>
+                <p class="perfil-resumen__nombre">{{ datos.nombre }} {{ datos.apellido }}</p>
+                <p class="perfil-resumen__usuario">&#64;{{ datos.nombreUsuario }}</p>
+            </div>
+        } @else {
+            <a class="button button--primary" routerLink="/">Iniciar sesión</a>
+        }
     </section>
 
     <nav class="navegacion card" aria-label="Navegación principal">
@@ -40,13 +44,15 @@
 
         <div class="navegacion__separador"></div>
 
-        <a class="navegacion__opcion" routerLink="/">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
-                <path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" />
-            </svg>
+        @if (usuario()) {
+            <a class="navegacion__opcion" routerLink="/" (click)="cerrarSesion()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" />
+                </svg>
 
-            Cerrar sesión
-        </a>
+                Cerrar sesión
+            </a>
+        }
     </nav>
 
 </aside>

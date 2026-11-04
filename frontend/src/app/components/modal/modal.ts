@@ -5,6 +5,7 @@ export interface MensajeModal {
     titulo: string;
     mensaje: string;
     textoBoton?: string;
+    textoConfirmar?: string;
 }
 
 @Component({
@@ -15,6 +16,8 @@ export interface MensajeModal {
 export class Modal implements AfterViewInit {
     readonly mensaje = input.required<MensajeModal>();
     readonly cerrado = output<void>();
+    readonly confirmado = output<void>();
+    readonly procesando = input(false);
 
     private readonly dialogo = viewChild<ElementRef<HTMLDialogElement>>('dialogo');
 
@@ -28,7 +31,17 @@ export class Modal implements AfterViewInit {
     }
 
     protected cerrar(): void {
+        if (this.procesando()) {
+            return;
+        }
+
         this.dialogo()?.nativeElement.close();
         this.cerrado.emit();
+    }
+
+    protected confirmar(): void {
+        if (!this.procesando()) {
+            this.confirmado.emit();
+        }
     }
 }

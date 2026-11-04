@@ -1,0 +1,19 @@
+<section class="comentarios-perfil" [attr.aria-labelledby]="'comentarios-' + publicacionId()" [attr.aria-busy]="cargando()">
+    <h3 [id]="'comentarios-' + publicacionId()">Comentarios</h3>
+
+    @if (cargando()) {
+        <div class="carga-en-linea" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <p>Cargando comentarios…</p>
+        </div>
+    } @else if (errorCarga()) {
+        <p role="alert">No pudimos cargar los comentarios.</p>
+        <button class="button" type="button" (click)="cargar(publicacionId())">Reintentar</button>
+    } @else {
+        @for (comentario of comentarios(); track comentario.id) {
+            <app-comentario [comentario]="comentario" />
+        } @empty {
+            <p>Esta publicación todavía no tiene comentarios.</p>
+        }
+    }
+</section>

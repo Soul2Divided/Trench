@@ -5,30 +5,66 @@
         <app-panel-usuario />
 
         <main class="mi-perfil" aria-labelledby="titulo-mi-perfil">
-            <h1 id="titulo-mi-perfil">Mi perfil</h1>
+            <header class="encabezado-seccion">
+                <h1 id="titulo-mi-perfil">Mi perfil</h1>
+            </header>
 
-            <app-datos-perfil [usuario]="usuario" [cantidadPublicaciones]="publicaciones.length" />
-
-            <section class="mis-publicaciones" aria-labelledby="titulo-mis-publicaciones">
-                <div class="mis-publicaciones__encabezado">
-                    <h2 id="titulo-mis-publicaciones">Mis últimas publicaciones</h2>
-                    <p>Tus últimas tres historias compartidas.</p>
+            @if (!sesion()) {
+                <div class="estado-listado card">
+                    <p>Iniciá sesión para ver tus datos y tus publicaciones.</p>
+                    <a class="button button--primary" routerLink="/">Iniciar sesión</a>
                 </div>
-
-                @for (publicacion of publicaciones; track publicacion.id) {
-                    <app-tarjeta-publicacion [publicacion]="publicacion">
-                        <section class="comentarios-perfil" [attr.aria-labelledby]="'comentarios-' + publicacion.id">
-                            <h3 [id]="'comentarios-' + publicacion.id">Comentarios</h3>
-
-                            @for (comentario of publicacion.comentariosVisibles; track comentario.id) {
-                                <app-comentario [comentario]="comentario" />
-                            } @empty {
-                                <p class="comentarios-perfil__vacio">Esta publicación todavía no tiene comentarios.</p>
-                            }
-                        </section>
-                    </app-tarjeta-publicacion>
+            } @else {
+                @if (cargandoUsuario()) {
+                    <div class="carga-en-linea" role="status">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <p>Cargando tu perfil…</p>
+                    </div>
+                } @else if (errorUsuario()) {
+                    <div class="estado-listado card">
+                        <p role="alert">No pudimos cargar tus datos.</p>
+                        <button class="button button--accent" type="button" (click)="cargarUsuario()">Reintentar</button>
+                    </div>
+                } @else if (usuario(); as datos) {
+                    <app-datos-perfil
+                        [usuario]="datos"
+                        [cantidadPublicaciones]="totalPublicaciones()"
+                        (actualizado)="actualizarPerfil($event)"
+                    />
                 }
-            </section>
+
+                <section class="mis-publicaciones" aria-labelledby="titulo-mis-publicaciones" [attr.aria-busy]="cargandoPublicaciones()">
+                    <header class="encabezado-seccion encabezado-seccion--secundario">
+                        <div>
+                            <h2 id="titulo-mis-publicaciones">Mis últimas publicaciones</h2>
+                            <p>Tus últimas tres historias compartidas.</p>
+                        </div>
+                    </header>
+
+                    @if (cargandoPublicaciones()) {
+                        <div class="carga-en-linea" role="status">
+                            <span class="spinner" aria-hidden="true"></span>
+                            <p>Cargando tus publicaciones…</p>
+                        </div>
+                    } @else if (errorPublicaciones()) {
+                        <div class="estado-listado card">
+                            <p role="alert">No pudimos cargar tus últimas publicaciones.</p>
+                            <button class="button button--accent" type="button" (click)="cargarPublicaciones()">Reintentar</button>
+                        </div>
+                    } @else {
+                        @for (publicacion of publicaciones(); track publicacion.id) {
+                            <app-tarjeta-publicacion [publicacion]="publicacion" (eliminada)="cargarPublicaciones()">
+                                <app-comentarios-publicacion [publicacionId]="publicacion.id" />
+                            </app-tarjeta-publicacion>
+                        } @empty {
+                            <div class="estado-listado card">
+                                <p>Todavía no compartiste publicaciones.</p>
+                                <a class="button button--primary" routerLink="/publicaciones">Crear una publicación</a>
+                            </div>
+                        }
+                    }
+                </section>
+            }
         </main>
     </div>
 </div>

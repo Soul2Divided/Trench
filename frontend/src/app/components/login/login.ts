@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize, switchMap } from 'rxjs';
 
 import { AutenticacionService } from '../../services/autenticacion.service';
-import { errorFormulario, passwordValida } from '../../validators/auth.validators';
+import { errorFormulario, passwordValida, patronCorreo } from '../../validators/auth.validators';
 import { MensajeModal, Modal } from '../modal/modal';
 import { Registro } from '../registro/registro';
 import { Loader } from '../loader/loader';
@@ -20,6 +22,7 @@ export class Login {
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly autenticacion = inject(AutenticacionService);
     private readonly router = inject(Router);
+    private readonly destroyRef = inject(DestroyRef);
 
     protected readonly enviando = signal(false);
     protected readonly registrando = signal(false);
@@ -29,7 +32,7 @@ export class Login {
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
 
     protected readonly loginForm = this.formularios.group({
-        email: ['', [Validators.required, Validators.email]],
+        email: ['', [Validators.required, Validators.email, Validators.pattern(patronCorreo)]],
         password: ['', [Validators.required, passwordValida]],
     });
 
@@ -62,7 +65,7 @@ export class Login {
         email.setValue(email.value.trim().toLowerCase());
     }
 
-    protected async enviarLogin(): Promise<void> {
+    protected enviarLogin(): void {
         if (this.enviando()) {
             return;
         }
@@ -82,20 +85,19 @@ export class Login {
         this.enviando.set(true);
         this.mensajeModal.set(null);
 
-        const esperaMinima = new Promise<void>(resolver => setTimeout(resolver, 4000));
+        this.autenticacion.login(datos.email, datos.password)
+            .pipe(
+                switchMap(() => {
+                    this.loginForm.controls.password.reset();
 
-        try {
-            await this.autenticacion.login(datos.email, datos.password);
-            await esperaMinima;
-
-            this.loginForm.controls.password.reset();
-            await this.router.navigate(['/publicaciones']);
-        } catch (error: unknown) {
-            await esperaMinima;
-            this.mostrarErrorLogin(error);
-        } finally {
-            this.enviando.set(false);
-        }
+                    return this.router.navigate(['/publicaciones']);
+                }),
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this.enviando.set(false)),
+            )
+            .subscribe({
+                error: (error: unknown) => this.mostrarErrorLogin(error),
+            });
     }
 
     private mostrarErrorLogin(error: unknown): void {

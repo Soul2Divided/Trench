@@ -1,6 +1,8 @@
 <section class="crear-publicacion card" aria-labelledby="titulo-crear">
     <div class="crear-publicacion__cabecera">
-        <span class="avatar" aria-hidden="true">GL</span>
+        @if (usuario(); as datos) {
+            <img class="avatar" [src]="datos.imagenPerfilUrl" alt="">
+        }
 
         <div>
             <h2 id="titulo-crear">¿Qué estás escuchando?</h2>
@@ -8,27 +10,85 @@
         </div>
     </div>
 
-    <div class="form-field">
-        <label class="form-label" for="titulo-nuevo">Título</label>
-        <input class="form-control" id="titulo-nuevo" type="text" placeholder="Dale un título a tu publicación">
-    </div>
+    <form [formGroup]="publicacionForm" (ngSubmit)="publicar()">
+        <fieldset class="crear-publicacion__campos" [disabled]="enviando() || !usuario()" [attr.aria-busy]="enviando()">
+            <div class="form-field">
+                @let errorTitulo = mensajeError(publicacionForm.controls.titulo, 'Ingresá un título.');
 
-    <div class="form-field">
-        <label class="form-label" for="mensaje-nuevo">Mensaje</label>
-        <textarea class="form-control" id="mensaje-nuevo" rows="3" placeholder="Una canción, un disco, algo que quieras compartir..."></textarea>
-    </div>
+                <label class="form-label" for="titulo-nuevo">Título</label>
+                <input
+                    class="form-control"
+                    id="titulo-nuevo"
+                    type="text"
+                    formControlName="titulo"
+                    placeholder="Dale un título a tu publicación"
+                    [attr.aria-invalid]="errorTitulo ? 'true' : null"
+                    [attr.aria-describedby]="errorTitulo ? 'titulo-nuevo-error' : null"
+                >
 
-    <div class="crear-publicacion__acciones">
-        <button class="button" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8" cy="8" r="2" />
-                <path d="m3 18 6-6 4 4 3-3 5 5" />
-            </svg>
+                @if (errorTitulo) {
+                    <p class="form-error" id="titulo-nuevo-error">{{ errorTitulo }}</p>
+                }
+            </div>
 
-            Adjuntar imagen
-        </button>
+            <div class="form-field">
+                @let errorMensaje = mensajeError(publicacionForm.controls.mensaje, 'Escribí el mensaje de tu publicación.');
 
-        <button class="button button--primary" type="button">Publicar</button>
-    </div>
+                <label class="form-label" for="mensaje-nuevo">Mensaje</label>
+                <textarea
+                    class="form-control"
+                    id="mensaje-nuevo"
+                    rows="3"
+                    formControlName="mensaje"
+                    placeholder="Una canción, un disco, algo que quieras compartir..."
+                    [attr.aria-invalid]="errorMensaje ? 'true' : null"
+                    [attr.aria-describedby]="errorMensaje ? 'mensaje-nuevo-error' : null"
+                ></textarea>
+
+                @if (errorMensaje) {
+                    <p class="form-error" id="mensaje-nuevo-error">{{ errorMensaje }}</p>
+                }
+            </div>
+
+            <div class="form-field">
+                @let errorImagen = mensajeError(publicacionForm.controls.imagen, 'Elegí una imagen.');
+
+                <label class="form-label" for="imagen-nueva">Imagen opcional</label>
+                <input
+                    class="form-control"
+                    id="imagen-nueva"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    [attr.aria-invalid]="errorImagen ? 'true' : null"
+                    [attr.aria-describedby]="errorImagen ? 'imagen-nueva-ayuda imagen-nueva-error' : 'imagen-nueva-ayuda'"
+                    (change)="seleccionarImagen($event)"
+                >
+                <p class="form-hint" id="imagen-nueva-ayuda">JPG, PNG o WebP de menos de 5 MiB.</p>
+
+                @if (errorImagen) {
+                    <p class="form-error" id="imagen-nueva-error">{{ errorImagen }}</p>
+                }
+            </div>
+
+            @if (vistaPrevia(); as imagen) {
+                <img class="crear-publicacion__vista-previa" [src]="imagen" alt="Vista previa de la imagen adjunta">
+            }
+
+            <div class="crear-publicacion__acciones">
+                @if (publicacionForm.controls.imagen.value) {
+                    <button class="button" type="button" (click)="quitarImagen()">Quitar imagen</button>
+                }
+
+                <button class="button button--primary" type="submit">{{ enviando() ? 'Publicando…' : 'Publicar' }}</button>
+            </div>
+        </fieldset>
+    </form>
+
+    @if (!usuario()) {
+        <p class="form-hint">Iniciá sesión para compartir una publicación.</p>
+    }
 </section>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal [mensaje]="mensaje" (cerrado)="mensajeModal.set(null)" />
+}

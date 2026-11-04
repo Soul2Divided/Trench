@@ -1,5 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
+export const patronCorreo = /^[^\s@]+@[^\s@]+\.com$/i;
+
 export const textoObligatorio: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
     return typeof control.value === 'string' && control.value.trim() ? null : { required: true };
 };
@@ -70,6 +72,10 @@ export function errorFormulario(control: AbstractControl, obligatorio: string): 
     }
 
     if (control.hasError('email')) {
+        return 'Ingresá un correo electrónico válido, por ejemplo: nombre@dominio.com.';
+    }
+
+    if (control.hasError('pattern')) {
         return 'Ingresá un correo electrónico válido, por ejemplo: nombre@dominio.com.';
     }
 

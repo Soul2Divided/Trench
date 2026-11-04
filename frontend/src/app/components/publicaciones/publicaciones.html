@@ -5,33 +5,48 @@
         <app-panel-usuario />
 
         <main class="contenido-publicaciones" aria-labelledby="titulo-publicaciones">
-            <app-crear-publicacion />
+            <app-crear-publicacion (publicada)="reiniciarListado()" />
 
-            <div class="encabezado-listado">
+            <header class="encabezado-seccion">
                 <h1 id="titulo-publicaciones">Publicaciones</h1>
 
                 <div class="ordenamiento">
                     <label for="orden-publicaciones">Ordenar por</label>
 
-                    <select class="form-control" id="orden-publicaciones">
-                        <option>Más recientes</option>
-                        <option>Más me gusta</option>
+                    <select class="form-control" id="orden-publicaciones" [value]="orden()" (change)="cambiarOrden($event)">
+                        <option value="fecha">Más recientes</option>
+                        <option value="meGusta">Más me gusta</option>
                     </select>
                 </div>
-            </div>
+            </header>
 
-            <div class="listado-publicaciones">
-                @for (publicacion of publicaciones; track publicacion.id) {
-                    <app-tarjeta-publicacion [publicacion]="publicacion" />
+            <div class="listado-publicaciones" [attr.aria-busy]="cargando()">
+                @for (publicacion of publicaciones(); track publicacion.id) {
+                    <app-tarjeta-publicacion [publicacion]="publicacion" (eliminada)="quitarPublicacion($event)" />
                 }
             </div>
 
-            <nav class="paginacion" aria-label="Páginas de publicaciones">
-                <button class="button" type="button" disabled>Anterior</button>
-                <button class="button button--accent" type="button" aria-current="page" aria-label="Página 1">1</button>
-                <button class="button" type="button" aria-label="Página 2">2</button>
-                <button class="button" type="button">Siguiente</button>
-            </nav>
+            <div #finListado class="fin-listado">
+                @if (cargando()) {
+                    <div class="carga-en-linea" role="status">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <p>{{ publicaciones().length ? 'Cargando más publicaciones…' : 'Cargando publicaciones…' }}</p>
+                    </div>
+                } @else if (errorCarga(); as error) {
+                    <div class="estado-listado card">
+                        <p role="alert">{{ error }}</p>
+                        <button class="button button--accent" type="button" (click)="reintentar()">Reintentar</button>
+                    </div>
+                } @else if (!publicaciones().length && !hayMas()) {
+                    <div class="estado-listado card" role="status">
+                        <p>Todavía no hay publicaciones. ¡Compartí la primera!</p>
+                    </div>
+                } @else if (!hayMas()) {
+                    <p class="fin-listado__mensaje" role="status">Ya viste todas las publicaciones.</p>
+                } @else if (!scrollAutomatico()) {
+                    <button class="button button--accent" type="button" (click)="cargarMas()">Cargar más publicaciones</button>
+                }
+            </div>
         </main>
     </div>
 </div>

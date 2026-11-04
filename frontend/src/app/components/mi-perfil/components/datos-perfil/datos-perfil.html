@@ -1,46 +1,226 @@
 <section class="datos-perfil card" aria-labelledby="nombre-perfil">
     <div class="datos-perfil__presentacion">
-        <span class="avatar datos-perfil__foto" aria-hidden="true">{{ usuario().iniciales }}</span>
+        <img
+            class="avatar datos-perfil__foto"
+            [src]="vistaPrevia() || usuario().imagenPerfilUrl"
+            [alt]="'Foto de perfil de ' + usuario().nombre"
+        >
 
         <div class="datos-perfil__identidad">
             <h2 id="nombre-perfil">{{ usuario().nombre }} {{ usuario().apellido }}</h2>
-            <p class="datos-perfil__usuario">&#64;{{ usuario().usuario }}</p>
-            <p class="datos-perfil__descripcion">{{ usuario().descripcion }}</p>
+            <p class="datos-perfil__usuario">&#64;{{ usuario().nombreUsuario }}</p>
+
+            @if (!editando()) {
+                <p class="datos-perfil__descripcion">{{ usuario().descripcion }}</p>
+            }
         </div>
 
-        <button class="button button--primary datos-perfil__editar" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
-                <path d="m16 3 5 5-12 12-6 1 1-6ZM13 6l5 5" />
-            </svg>
+        @if (!editando()) {
+            <button class="button button--primary datos-perfil__editar" type="button" (click)="editar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m16 3 5 5-12 12-6 1 1-6ZM13 6l5 5" />
+                </svg>
 
-            Editar perfil
-        </button>
+                Editar perfil
+            </button>
+        }
     </div>
 
-    <dl class="datos-perfil__detalles">
-        <div>
-            <dt>Nombre</dt>
-            <dd>{{ usuario().nombre }}</dd>
-        </div>
+    @if (guardado()) {
+        <p class="datos-perfil__confirmacion" role="status">Tu perfil se actualizó correctamente.</p>
+    }
 
-        <div>
-            <dt>Apellido</dt>
-            <dd>{{ usuario().apellido }}</dd>
-        </div>
+    @if (editando()) {
+        @let campos = perfilForm.controls;
 
-        <div>
-            <dt>Correo electrónico</dt>
-            <dd>{{ usuario().correo }}</dd>
-        </div>
+        <form
+            class="datos-perfil__formulario"
+            aria-label="Editar perfil"
+            [formGroup]="perfilForm"
+            [attr.aria-busy]="guardando()"
+            (ngSubmit)="guardar()"
+        >
+            <fieldset class="datos-perfil__campos" [disabled]="guardando()">
+                <div class="form-field">
+                    @let errorNombre = mensajeError(campos.nombre, 'Ingresá tu nombre.');
 
-        <div>
-            <dt>Fecha de nacimiento</dt>
-            <dd>{{ usuario().fechaNacimiento }}</dd>
-        </div>
-    </dl>
+                    <label class="form-label" for="perfil-nombre">Nombre</label>
+                    <input
+                        class="form-control"
+                        id="perfil-nombre"
+                        formControlName="nombre"
+                        autocomplete="given-name"
+                        autofocus
+                        [attr.aria-invalid]="errorNombre ? 'true' : null"
+                        [attr.aria-describedby]="errorNombre ? 'perfil-nombre-error' : null"
+                    >
+
+                    @if (errorNombre) {
+                        <p class="form-error" id="perfil-nombre-error">{{ errorNombre }}</p>
+                    }
+                </div>
+
+                <div class="form-field">
+                    @let errorApellido = mensajeError(campos.apellido, 'Ingresá tu apellido.');
+
+                    <label class="form-label" for="perfil-apellido">Apellido</label>
+                    <input
+                        class="form-control"
+                        id="perfil-apellido"
+                        formControlName="apellido"
+                        autocomplete="family-name"
+                        [attr.aria-invalid]="errorApellido ? 'true' : null"
+                        [attr.aria-describedby]="errorApellido ? 'perfil-apellido-error' : null"
+                    >
+
+                    @if (errorApellido) {
+                        <p class="form-error" id="perfil-apellido-error">{{ errorApellido }}</p>
+                    }
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="perfil-correo">Correo electrónico</label>
+                    <input
+                        class="form-control"
+                        id="perfil-correo"
+                        type="email"
+                        [value]="usuario().correo"
+                        readonly
+                        aria-describedby="perfil-correo-ayuda"
+                    >
+
+                    <p class="form-hint" id="perfil-correo-ayuda">El correo electrónico no se puede modificar.</p>
+                </div>
+
+                <div class="form-field">
+                    @let errorUsuario = mensajeError(campos.nombreUsuario, 'Ingresá tu nombre de usuario.');
+
+                    <label class="form-label" for="perfil-usuario">Nombre de usuario</label>
+                    <input
+                        class="form-control"
+                        id="perfil-usuario"
+                        formControlName="nombreUsuario"
+                        autocomplete="username"
+                        [attr.aria-invalid]="errorUsuario ? 'true' : null"
+                        [attr.aria-describedby]="errorUsuario ? 'perfil-usuario-error' : null"
+                    >
+
+                    @if (errorUsuario) {
+                        <p class="form-error" id="perfil-usuario-error">{{ errorUsuario }}</p>
+                    }
+                </div>
+
+                <div class="form-field">
+                    @let errorFecha = mensajeError(campos.fechaNacimiento, 'Ingresá tu fecha de nacimiento.');
+
+                    <label class="form-label" for="perfil-fecha">Fecha de nacimiento</label>
+                    <input
+                        class="form-control"
+                        id="perfil-fecha"
+                        type="date"
+                        formControlName="fechaNacimiento"
+                        autocomplete="bday"
+                        [attr.aria-invalid]="errorFecha ? 'true' : null"
+                        [attr.aria-describedby]="errorFecha ? 'perfil-fecha-error' : null"
+                    >
+
+                    @if (errorFecha) {
+                        <p class="form-error" id="perfil-fecha-error">{{ errorFecha }}</p>
+                    }
+                </div>
+
+                <div class="form-field datos-perfil__campo-completo">
+                    @let errorDescripcion = mensajeError(campos.descripcion, 'Ingresá una descripción.');
+
+                    <label class="form-label" for="perfil-descripcion">Descripción</label>
+                    <textarea
+                        class="form-control"
+                        id="perfil-descripcion"
+                        rows="3"
+                        maxlength="250"
+                        formControlName="descripcion"
+                        [attr.aria-invalid]="errorDescripcion ? 'true' : null"
+                        [attr.aria-describedby]="errorDescripcion ? 'perfil-descripcion-ayuda perfil-descripcion-error' : 'perfil-descripcion-ayuda'"
+                    ></textarea>
+                    <p class="form-hint" id="perfil-descripcion-ayuda">Hasta 250 caracteres.</p>
+
+                    @if (errorDescripcion) {
+                        <p class="form-error" id="perfil-descripcion-error">{{ errorDescripcion }}</p>
+                    }
+                </div>
+
+                <div class="form-field datos-perfil__campo-completo">
+                    @let errorImagen = mensajeError(campos.imagen, 'Elegí una imagen.');
+
+                    <label class="form-label" for="perfil-imagen">Cambiar foto de perfil</label>
+                    <input
+                        class="form-control"
+                        id="perfil-imagen"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        [attr.aria-invalid]="errorImagen ? 'true' : null"
+                        [attr.aria-describedby]="errorImagen ? 'perfil-imagen-ayuda perfil-imagen-error' : 'perfil-imagen-ayuda'"
+                        (change)="seleccionarImagen($event)"
+                    >
+                    <p class="form-hint" id="perfil-imagen-ayuda">JPG, PNG o WebP de menos de 5 MiB. Si no elegís otra, se conserva tu foto actual.</p>
+
+                    @if (errorImagen) {
+                        <p class="form-error" id="perfil-imagen-error">{{ errorImagen }}</p>
+                    }
+
+                    @if (campos.imagen.value) {
+                        <button class="button datos-perfil__quitar-imagen" type="button" (click)="quitarImagenNueva()">
+                            Conservar foto actual
+                        </button>
+                    }
+                </div>
+
+                <div class="datos-perfil__acciones datos-perfil__campo-completo">
+                    <button class="button" type="button" (click)="cancelar()">Cancelar</button>
+
+                    <button class="button button--primary" type="submit">
+                        @if (guardando()) {
+                            <span class="spinner" aria-hidden="true"></span>
+                        }
+
+                        {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    } @else {
+        <dl class="datos-perfil__detalles">
+            <div>
+                <dt>Nombre</dt>
+                <dd>{{ usuario().nombre }}</dd>
+            </div>
+
+            <div>
+                <dt>Apellido</dt>
+                <dd>{{ usuario().apellido }}</dd>
+            </div>
+
+            <div>
+                <dt>Correo electrónico</dt>
+                <dd>{{ usuario().correo }}</dd>
+            </div>
+
+            <div>
+                <dt>Fecha de nacimiento</dt>
+                <dd>{{ usuario().fechaNacimiento | date:'longDate':'UTC' }}</dd>
+            </div>
+        </dl>
+    }
 
     <div class="datos-perfil__resumen">
-        <span class="datos-perfil__contador">{{ cantidadPublicaciones() }} publicaciones</span>
-        <span>Tu música, tus historias, tu espacio.</span>
+        @if (cantidadPublicaciones() !== null) {
+            <span class="datos-perfil__contador">{{ cantidadPublicaciones() }} publicaciones</span>
+        }
+
+        <span>Tu música, tus historias, tu trench.</span>
     </div>
 </section>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal [mensaje]="mensaje" (cerrado)="mensajeModal.set(null)" />
+}

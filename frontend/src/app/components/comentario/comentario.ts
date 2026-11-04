@@ -1,19 +1,14 @@
+import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
 
-export interface DatosComentario {
-    id: number;
-    nombre: string;
-    iniciales: string;
-    fecha: string;
-    mensaje: string;
-    editado?: boolean;
-}
+import { ComentarioPublicacion } from '../../models/publicacion';
 
 @Component({
     selector: 'app-comentario',
+    imports: [DatePipe],
     templateUrl: './comentario.html',
     styleUrl: './comentario.scss',
 })
 export class Comentario {
-    readonly comentario = input.required<DatosComentario>();
+    readonly comentario = input.required<ComentarioPublicacion>();
 }
