@@ -88,7 +88,8 @@
     gap: 0.75rem;
     margin-top: 1.25rem;
 
-    .button {
+    .button,
+    .publicacion__contador-me-gusta {
         min-height: 2.5rem;
         padding: 0.5rem 0.875rem;
         font-size: 0.75rem;
@@ -99,4 +100,140 @@
         height: 1.125rem;
         flex-shrink: 0;
     }
+}
+
+.publicacion__contador-me-gusta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+}
+
+.publicacion__me-gusta {
+    position: relative;
+    overflow: visible;
+
+    &--activo svg {
+        fill: currentColor;
+    }
+
+    &--celebrando {
+        animation: celebrar-me-gusta 850ms ease-out;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+}
+
+.publicacion__notas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    span {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        left: 1.5rem;
+        opacity: 0;
+        font-size: 1.375rem;
+        line-height: 1;
+        animation: soltar-nota 850ms ease-out both;
+    }
+
+    span:nth-child(1) {
+        --desplazamiento-x: -1.5rem;
+        --desplazamiento-y: -2.5rem;
+        --giro: -25deg;
+        color: #c73579;
+    }
+
+    span:nth-child(2) {
+        --desplazamiento-x: -0.5rem;
+        --desplazamiento-y: -3.25rem;
+        --giro: -10deg;
+        color: #7752c7;
+    }
+
+    span:nth-child(3) {
+        --desplazamiento-x: 1rem;
+        --desplazamiento-y: -3rem;
+        --giro: 20deg;
+        color: #168482;
+    }
+
+    span:nth-child(4) {
+        --desplazamiento-x: 2.75rem;
+        --desplazamiento-y: -2.5rem;
+        --giro: 30deg;
+        color: #a76c00;
+    }
+
+    span:nth-child(5) {
+        --desplazamiento-x: 4rem;
+        --desplazamiento-y: -1.5rem;
+        --giro: 15deg;
+        color: #c73579;
+    }
+
+    span:nth-child(6) {
+        --desplazamiento-x: 3rem;
+        --desplazamiento-y: 0.5rem;
+        --giro: 35deg;
+        color: #7752c7;
+    }
+}
+
+@keyframes celebrar-me-gusta {
+    0%,
+    100% {
+        background-color: var(--color-white);
+        transform: scale(1);
+    }
+
+    25% {
+        background-color: #ffd6e7;
+        transform: scale(1.06);
+    }
+
+    50% {
+        background-color: #e3d7ff;
+    }
+
+    75% {
+        background-color: #fff0b8;
+    }
+}
+
+@keyframes soltar-nota {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.4);
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(var(--desplazamiento-x), var(--desplazamiento-y)) rotate(var(--giro)) scale(1.1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .publicacion__me-gusta--celebrando {
+        animation-duration: 1ms;
+    }
+
+    .publicacion__notas {
+        display: none;
+    }
+}
+
+.publicacion__error-me-gusta {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
 }

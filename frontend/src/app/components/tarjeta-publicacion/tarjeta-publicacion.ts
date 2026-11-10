@@ -4,7 +4,7 @@ import { Component, computed, DestroyRef, inject, input, output, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 
-import { Publicacion } from '../../models/publicacion';
+import { EstadoMeGusta, Publicacion } from '../../models/publicacion';
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { MensajeModal, Modal } from '../modal/modal';
@@ -18,6 +18,7 @@ import { MensajeModal, Modal } from '../modal/modal';
 export class TarjetaPublicacion {
     readonly publicacion = input.required<Publicacion>();
     readonly eliminada = output<string>();
+    readonly meGustaActualizado = output<EstadoMeGusta & { id: string }>();
 
     private readonly autenticacion = inject(AutenticacionService);
     private readonly publicacionesService = inject(PublicacionesService);
@@ -28,7 +29,49 @@ export class TarjetaPublicacion {
     });
 
     protected readonly eliminando = signal(false);
+    protected readonly actualizandoMeGusta = signal(false);
+    protected readonly celebrandoMeGusta = signal(false);
+    protected readonly errorMeGusta = signal<string | null>(null);
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
+
+    protected cambiarMeGusta(): void {
+        if (this.propia() || this.actualizandoMeGusta() || this.eliminando()) {
+            return;
+        }
+
+        if (!this.autenticacion.usuarioActual()) {
+            this.errorMeGusta.set('Iniciá sesión para dar me gusta.');
+
+            return;
+        }
+
+        const publicacion = this.publicacion();
+
+        this.actualizandoMeGusta.set(true);
+        this.celebrandoMeGusta.set(false);
+        this.errorMeGusta.set(null);
+
+        this.publicacionesService.cambiarMeGusta(publicacion.id, !publicacion.meGustaDelUsuario)
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this.actualizandoMeGusta.set(false)),
+            )
+            .subscribe({
+                next: estado => {
+                    this.meGustaActualizado.emit({ id: publicacion.id, ...estado });
+                    this.celebrandoMeGusta.set(!publicacion.meGustaDelUsuario && estado.meGustaDelUsuario);
+                },
+                error: () => {
+                    this.errorMeGusta.set('No se pudo actualizar el me gusta. Intentá nuevamente.');
+                },
+            });
+    }
+
+    protected finalizarCelebracion(evento: AnimationEvent): void {
+        if (evento.target === evento.currentTarget) {
+            this.celebrandoMeGusta.set(false);
+        }
+    }
 
     protected solicitarEliminacion(): void {
         if (!this.propia() || this.eliminando()) {

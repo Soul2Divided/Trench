@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { MongoIdPipe } from '../pipes/mongo-id.pipe.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
+import { DarMeGustaDto } from './dto/dar-me-gusta.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
 import { PublicacionesService } from './publicaciones.service.js';
 
@@ -59,6 +60,23 @@ export class PublicacionesController {
         imagen?: Express.Multer.File,
     ) {
         return this.publicacionesService.crear(datos, imagen);
+    }
+
+    @Post(':id/me-gusta')
+    @HttpCode(HttpStatus.OK)
+    darMeGusta(
+        @Param('id', MongoIdPipe) id: string,
+        @Body() datos: DarMeGustaDto,
+    ) {
+        return this.publicacionesService.cambiarMeGusta(id, datos.usuarioId, true);
+    }
+
+    @Delete(':id/me-gusta')
+    quitarMeGusta(
+        @Param('id', MongoIdPipe) id: string,
+        @Query('usuarioId', MongoIdPipe) usuarioId: string,
+    ) {
+        return this.publicacionesService.cambiarMeGusta(id, usuarioId, false);
     }
 
     @Delete(':id')

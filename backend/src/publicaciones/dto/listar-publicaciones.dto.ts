@@ -19,4 +19,8 @@ export class ListarPublicacionesDto {
     @IsOptional()
     @IsMongoId({ message: 'El identificador del usuario no es válido.' })
     usuarioId?: string;
+
+    @IsOptional()
+    @IsMongoId({ message: 'El identificador del usuario actual no es válido.' })
+    usuarioActualId?: string;
 }

@@ -14,10 +14,16 @@ export interface Publicacion {
     fechaCreacion: string;
     imagenUrl?: string;
     meGusta: number;
+    meGustaDelUsuario: boolean;
     comentarios: number;
 }
 
 export type OrdenPublicaciones = 'fecha' | 'meGusta';
+
+export interface EstadoMeGusta {
+    meGusta: number;
+    meGustaDelUsuario: boolean;
+}
 
 export interface ConsultaPublicaciones {
     offset: number;

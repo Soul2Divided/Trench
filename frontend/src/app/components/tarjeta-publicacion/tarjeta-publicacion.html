@@ -28,13 +28,45 @@
     }
 
     <footer class="publicacion__acciones">
-        <button class="button" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
-            </svg>
+        @if (propia()) {
+            <span class="publicacion__contador-me-gusta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+                </svg>
 
-            {{ publicacion().meGusta }} Me gusta
-        </button>
+                {{ publicacion().meGusta }} Me gusta
+            </span>
+        } @else {
+            <button
+                class="button publicacion__me-gusta"
+                type="button"
+                [class.publicacion__me-gusta--activo]="publicacion().meGustaDelUsuario"
+                [class.publicacion__me-gusta--celebrando]="celebrandoMeGusta()"
+                [attr.aria-pressed]="publicacion().meGustaDelUsuario"
+                [attr.aria-label]="publicacion().meGustaDelUsuario ? 'Quitar me gusta' : 'Dar me gusta'"
+                [attr.aria-busy]="actualizandoMeGusta()"
+                [disabled]="actualizandoMeGusta() || eliminando()"
+                (click)="cambiarMeGusta()"
+                (animationend)="finalizarCelebracion($event)"
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+                </svg>
+
+                {{ publicacion().meGusta }} Me gusta
+
+                @if (celebrandoMeGusta()) {
+                    <span class="publicacion__notas" aria-hidden="true">
+                        <span>♪</span>
+                        <span>♫</span>
+                        <span>♬</span>
+                        <span>♪</span>
+                        <span>♫</span>
+                        <span>♬</span>
+                    </span>
+                }
+            </button>
+        }
 
         <button class="button" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
@@ -44,6 +76,10 @@
             {{ publicacion().comentarios }} Comentarios
         </button>
     </footer>
+
+    @if (errorMeGusta(); as error) {
+        <p class="publicacion__error-me-gusta" role="alert">{{ error }}</p>
+    }
 
     <ng-content />
 </article>

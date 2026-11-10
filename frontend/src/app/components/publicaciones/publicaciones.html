@@ -22,7 +22,11 @@
 
             <div class="listado-publicaciones" [attr.aria-busy]="cargando()">
                 @for (publicacion of publicaciones(); track publicacion.id) {
-                    <app-tarjeta-publicacion [publicacion]="publicacion" (eliminada)="quitarPublicacion($event)" />
+                    <app-tarjeta-publicacion
+                        [publicacion]="publicacion"
+                        (eliminada)="quitarPublicacion($event)"
+                        (meGustaActualizado)="actualizarMeGusta($event)"
+                    />
                 }
             </div>
 

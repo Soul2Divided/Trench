@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { mongo, Types } from 'mongoose';
+import type { Connection } from 'mongoose';
 import type { Model, QueryFilter, SortOrder } from 'mongoose';
 
 import { CloudinaryService } from '../file/cloudinary.service.js';
@@ -9,6 +10,7 @@ import { UsuariosService } from '../usuarios/usuarios.service.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
 import { Comentario } from './schemas/comentario.schema.js';
+import { MeGusta } from './schemas/me-gusta.schema.js';
 import { Publicacion } from './schemas/publicacion.schema.js';
 import type { PublicacionDocument } from './schemas/publicacion.schema.js';
 
@@ -24,12 +26,14 @@ export class PublicacionesService {
     constructor(
         @InjectModel(Publicacion.name) private readonly publicacionModel: Model<Publicacion>,
         @InjectModel(Comentario.name) private readonly comentarioModel: Model<Comentario>,
+        @InjectModel(MeGusta.name) private readonly meGustaModel: Model<MeGusta>,
+        @InjectConnection() private readonly conexion: Connection,
         private readonly cloudinaryService: CloudinaryService,
         private readonly usuariosService: UsuariosService,
     ) {}
 
     async listar(consulta: ListarPublicacionesDto) {
-        const filtro: QueryFilter<Publicacion> = { activa: true }; // filtra solo publicaciones activas
+        const filtro: QueryFilter<Publicacion> = { activa: true };
 
         if (consulta.usuarioId) {
             filtro.autor = new Types.ObjectId(consulta.usuarioId);
@@ -57,7 +61,17 @@ export class PublicacionesService {
         ]);
 
         const publicacionIds = publicaciones.map(publicacion => publicacion._id);
-        const cantidadComentariosPorPublicacion = await this.obtenerCantidadComentariosPorPublicacion(publicacionIds);
+        const [cantidadComentariosPorPublicacion, meGustaDelUsuario] = await Promise.all([
+            this.obtenerCantidadComentariosPorPublicacion(publicacionIds),
+            consulta.usuarioActualId && publicacionIds.length > 0
+                ? this.meGustaModel.find({
+                    usuario: consulta.usuarioActualId,
+                    publicacion: { $in: publicacionIds },
+                }).select('publicacion').lean().exec()
+                : Promise.resolve([]),
+        ]);
+
+        const publicacionesConMeGusta = new Set(meGustaDelUsuario.map(relacion => relacion.publicacion.toString()));
 
         const publicacionesParaMostrar = publicaciones.map(publicacion => {
             const publicacionId = publicacion._id.toString();
@@ -77,6 +91,7 @@ export class PublicacionesService {
                 fechaCreacion: publicacion.fechaCreacion,
                 imagenUrl: publicacion.imagenUrl,
                 meGusta: publicacion.meGusta,
+                meGustaDelUsuario: publicacionesConMeGusta.has(publicacionId),
                 comentarios: cantidadComentarios,
             };
         });
@@ -160,8 +175,77 @@ export class PublicacionesService {
             fechaCreacion: publicacion.fechaCreacion,
             imagenUrl: publicacion.imagenUrl,
             meGusta: publicacion.meGusta,
+            meGustaDelUsuario: false,
             comentarios: 0,
         };
+    }
+
+    async cambiarMeGusta(id: string, usuarioId: string, darMeGusta: boolean) {
+        await this.usuariosService.obtenerPorId(usuarioId);
+
+        const relacion = {
+            usuario: new Types.ObjectId(usuarioId),
+            publicacion: new Types.ObjectId(id),
+        };
+
+        // La funcion "transaccion" se utiliza para asegurar que las operaciones de base de datos se realicen de manera atómica.
+        // Si ocurre un error durante la transacción, todos los cambios realizados dentro de ella se revertirán, garantizando la consistencia de los datos.
+        const actualizar = () => this.conexion.transaction(async session => {
+            const publicacion = await this.publicacionModel
+                .findOne({ _id: id, activa: true })
+                // La session identifica el contexto de la transacción.
+                // Se pasa a cada operación para que participe en ella y sus cambios
+                // se confirmen o reviertan junto con los demás.
+                .session(session)
+                .exec();
+
+            if (!publicacion) {
+                throw new NotFoundException('La publicación no existe o ya no está disponible.');
+            }
+
+            if (darMeGusta && publicacion.autor.equals(relacion.usuario)) {
+                throw new ForbiddenException('No podés dar me gusta a tus propias publicaciones.');
+            }
+
+            let variacion = 0;
+
+            if (darMeGusta) {
+                const resultado = await this.meGustaModel.updateOne(
+                    relacion,
+                    { $setOnInsert: relacion },
+                    { upsert: true, session },
+                ).exec();
+
+                // Si upsertedCount es 1, significa que se insertó un nuevo documento,
+                // lo que indica que el usuario le dio "me gusta" a la publicación.
+                variacion = resultado.upsertedCount === 1 ? 1 : 0;
+            } else {
+                const resultado = await this.meGustaModel.deleteOne(relacion, { session }).exec();
+
+                variacion = resultado.deletedCount === 1 ? -1 : 0;
+            }
+
+            if (variacion !== 0) {
+                publicacion.meGusta += variacion;
+
+                await publicacion.save({ session });
+            }
+
+            return {
+                meGusta: publicacion.meGusta,
+                meGustaDelUsuario: darMeGusta,
+            };
+        });
+
+        try {
+            return await actualizar();
+        } catch (error: unknown) {
+            if (error instanceof mongo.MongoServerError && error.code === 11000) {
+                return actualizar();
+            }
+
+            throw error;
+        }
     }
 
     async eliminar(id: string, usuarioId: string): Promise<void> {

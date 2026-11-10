@@ -2,7 +2,7 @@ import { AfterViewInit, afterNextRender, Component, DestroyRef, ElementRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize, Subscription } from 'rxjs';
 
-import { OrdenPublicaciones, Publicacion } from '../../models/publicacion';
+import { EstadoMeGusta, OrdenPublicaciones, Publicacion } from '../../models/publicacion';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { CrearPublicacion } from './components/crear-publicacion/crear-publicacion';
 import { Navbar } from '../navbar/navbar';
@@ -22,7 +22,7 @@ export class Publicaciones implements OnInit, AfterViewInit {
     private readonly finListado = viewChild<ElementRef<HTMLElement>>('finListado');
 
     private readonly limite = 5;
-    private readonly margenCarga = 5;
+    private readonly margenCarga = 200;
 
     private offset = 0;
     private total = 0;
@@ -117,6 +117,16 @@ export class Publicaciones implements OnInit, AfterViewInit {
     protected reintentar(): void {
         this.errorCarga.set(null);
         this.cargarMas();
+    }
+
+    protected actualizarMeGusta(estado: EstadoMeGusta & { id: string }): void {
+        this.publicaciones.update(actuales => actuales.map(publicacion => {
+            if (publicacion.id !== estado.id) {
+                return publicacion;
+            }
+
+            return { ...publicacion, meGusta: estado.meGusta, meGustaDelUsuario: estado.meGustaDelUsuario };
+        }));
     }
 
     protected quitarPublicacion(id: string): void {

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment.development';
 
 export interface UsuarioAutenticado {
     id: string;
@@ -18,7 +19,7 @@ export interface UsuarioAutenticado {
 export class AutenticacionService {
     private readonly http = inject(HttpClient);
 
-    private readonly url = 'http://localhost:3000/autenticacion';
+    private readonly url = `${environment.apiUrl}/autenticacion`;
     private readonly claveUsuario = 'trench.usuario';
     private readonly usuario = signal<UsuarioAutenticado | null>(this.recuperarUsuario());
 
