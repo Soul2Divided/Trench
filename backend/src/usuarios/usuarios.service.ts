@@ -1,10 +1,12 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { PasswordHasher } from '@nestjs/authentication';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { mongo } from 'mongoose';
 import type { Model } from 'mongoose';
 import { Usuario } from './schemas/usuario.schema.js';
 import type { UsuarioDocument } from './schemas/usuario.schema.js';
 import { CloudinaryService } from '../file/cloudinary.service.js';
+import { RegisterUsuarioDto } from '../autenticacion/dto/register-usuario.dto.js';
 import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto.js';
 
 export interface DatosNuevoUsuario {
@@ -17,6 +19,7 @@ export interface DatosNuevoUsuario {
     descripcion: string;
     imagenPerfilUrl: string;
     imagenPerfilPublicId: string;
+    rol: Usuario['rol'];
 }
 
 @Injectable()
@@ -26,7 +29,8 @@ export class UsuariosService {
     constructor(
         @InjectModel(Usuario.name) private readonly usuarioModel: Model<Usuario>,
         private readonly cloudinaryService: CloudinaryService,
-    ) {}
+        private readonly passwordHasher: PasswordHasher,
+    ) { }
 
     async obtenerPorId(id: string) {
         const usuario = await this.usuarioModel.findById(id).exec();
@@ -35,17 +39,100 @@ export class UsuariosService {
             throw new NotFoundException('El usuario no existe.');
         }
 
-        return {
-            id: usuario._id.toString(),
-            nombre: usuario.nombre,
-            apellido: usuario.apellido,
-            correo: usuario.correo,
-            nombreUsuario: usuario.nombreUsuario,
-            fechaNacimiento: usuario.fechaNacimiento,
-            descripcion: usuario.descripcion,
-            imagenPerfilUrl: usuario.imagenPerfilUrl,
-            rol: usuario.rol,
-        };
+        return this.parsearUsuario(usuario);
+    }
+
+    findByCorreo(correo: string): Promise<UsuarioDocument | null> {
+        return this.usuarioModel.findOne({ correo: correo.trim().toLowerCase() }).exec();
+    }
+
+    findByCorreoConContrasena(correo: string): Promise<UsuarioDocument | null> {
+        return this.usuarioModel
+            .findOne({ correo: correo.trim().toLowerCase() })
+            .select('+contrasenaHash')
+            .exec();
+    }
+
+    findByNombreUsuario(nombreUsuario: string): Promise<UsuarioDocument | null> {
+        return this.usuarioModel.findOne({ nombreUsuario: nombreUsuario.trim() }).exec();
+    }
+
+    async listar() {
+        const usuarios = await this.usuarioModel.find().sort({ nombreUsuario: 1, _id: 1 }).exec();
+
+        return usuarios.map(usuario => this.parsearUsuario(usuario));
+    }
+
+    async crear(datos: RegisterUsuarioDto, imagen: Express.Multer.File, rol: Usuario['rol']) {
+        if (datos.contrasena !== datos.repetirContrasena) {
+            throw new BadRequestException('Las contraseñas no coinciden.');
+        }
+
+        const usuarioPorCorreo = await this.findByCorreo(datos.correo);
+
+        if (usuarioPorCorreo) {
+            throw new ConflictException('El correo ya está registrado.');
+        }
+
+        const usuarioPorNombre = await this.findByNombreUsuario(datos.nombreUsuario);
+
+        if (usuarioPorNombre) {
+            throw new ConflictException('El nombre de usuario ya está registrado.');
+        }
+
+        const contrasenaHash = await this.passwordHasher.hash(datos.contrasena);
+        const imagenSubida = await this.cloudinaryService.subirImagen(imagen.buffer);
+        let usuario: UsuarioDocument;
+
+        try {
+            usuario = await this.saveUser({
+                nombre: datos.nombre,
+                apellido: datos.apellido,
+                correo: datos.correo,
+                nombreUsuario: datos.nombreUsuario,
+                contrasenaHash,
+                fechaNacimiento: new Date(datos.fechaNacimiento),
+                descripcion: datos.descripcion,
+                imagenPerfilUrl: imagenSubida.secure_url,
+                imagenPerfilPublicId: imagenSubida.public_id,
+                rol,
+            });
+        } catch (error: unknown) {
+            try {
+                await this.cloudinaryService.eliminarImagen(imagenSubida.public_id);
+            } catch {
+                this.logger.warn('No se pudo eliminar la imagen de un registro fallido.');
+            }
+
+            throw error;
+        }
+
+        return this.parsearUsuario(usuario);
+    }
+
+    private async saveUser(datos: DatosNuevoUsuario): Promise<UsuarioDocument> {
+        const nuevoUsuario = new this.usuarioModel({
+            nombre: datos.nombre,
+            apellido: datos.apellido,
+            correo: datos.correo,
+            nombreUsuario: datos.nombreUsuario,
+            contrasenaHash: datos.contrasenaHash,
+            fechaNacimiento: datos.fechaNacimiento,
+            descripcion: datos.descripcion,
+            imagenPerfilUrl: datos.imagenPerfilUrl,
+            imagenPerfilPublicId: datos.imagenPerfilPublicId,
+            rol: datos.rol,
+        });
+
+        try {
+            return await nuevoUsuario.save();
+        } catch (error: unknown) {
+            if (error instanceof mongo.MongoServerError && error.code === 11000) {
+                throw new ConflictException('El correo o el nombre de usuario ya está registrado.');
+            }
+
+            throw error;
+        }
     }
 
     async actualizarPerfil(id: string, datos: ActualizarPerfilDto, imagen?: Express.Multer.File) {
@@ -115,6 +202,48 @@ export class UsuariosService {
             }
         }
 
+        return this.parsearUsuario(usuario);
+    }
+
+    async obtenerUsuarioHabilitado(id: string) {
+        let usuario;
+
+        try {
+            usuario = await this.obtenerPorId(id);
+        } catch (error: unknown) {
+            if (error instanceof NotFoundException) {
+                throw new UnauthorizedException('El usuario de la sesión ya no existe.');
+            }
+
+            throw error;
+        }
+
+        if (!usuario.habilitado) {
+            throw new ForbiddenException('Tu usuario está deshabilitado. No estás autorizado a ingresar.');
+        }
+
+        return usuario;
+    }
+
+    async cambiarHabilitacion(id: string, habilitado: boolean, administradorId: string) {
+        if (!habilitado && id.toLowerCase() === administradorId.toLowerCase()) {
+            throw new BadRequestException('No podés deshabilitar tu propio usuario.');
+        }
+
+        const usuario = await this.usuarioModel.findByIdAndUpdate(
+            id,
+            { $set: { habilitado } },
+            { new: true, runValidators: true },
+        ).exec();
+
+        if (!usuario) {
+            throw new NotFoundException('El usuario no existe.');
+        }
+
+        return this.parsearUsuario(usuario);
+    }
+
+    private parsearUsuario(usuario: UsuarioDocument) {
         return {
             id: usuario._id.toString(),
             nombre: usuario.nombre,
@@ -125,47 +254,7 @@ export class UsuariosService {
             descripcion: usuario.descripcion,
             imagenPerfilUrl: usuario.imagenPerfilUrl,
             rol: usuario.rol,
+            habilitado: usuario.habilitado,
         };
-    }
-
-    findByCorreo(correo: string): Promise<UsuarioDocument | null> {
-        return this.usuarioModel.findOne({ correo: correo.trim().toLowerCase() }).exec();
-    }
-
-    findByCorreoConContrasena(correo: string): Promise<UsuarioDocument | null> {
-        return this.usuarioModel
-            .findOne({ correo: correo.trim().toLowerCase() })
-            .select('+contrasenaHash')
-            .exec();
-    }
-
-    findByNombreUsuario(nombreUsuario: string): Promise<UsuarioDocument | null> {
-        return this.usuarioModel.findOne({ nombreUsuario: nombreUsuario.trim() }).exec();
-    }
-
-    async saveUser(datos: DatosNuevoUsuario): Promise<UsuarioDocument> {
-
-        const nuevoUsuario = new this.usuarioModel({
-            nombre: datos.nombre,
-            apellido: datos.apellido,
-            correo: datos.correo,
-            nombreUsuario: datos.nombreUsuario,
-            contrasenaHash:  datos.contrasenaHash,
-            fechaNacimiento: datos.fechaNacimiento,
-            descripcion: datos.descripcion,
-            imagenPerfilUrl: datos.imagenPerfilUrl,
-            imagenPerfilPublicId: datos.imagenPerfilPublicId,
-            rol: 'usuario',
-        });
-
-        try {
-            return await nuevoUsuario.save();
-        } catch (error: unknown) {
-            if (error instanceof mongo.MongoServerError && error.code === 11000) {
-                throw new ConflictException('El correo o el nombre de usuario ya está registrado.');
-            }
-
-            throw error;
-        }
     }
 }
