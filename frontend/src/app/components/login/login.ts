@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -17,7 +17,7 @@ import { Loader } from '../loader/loader';
     styleUrl: './login.scss',
     templateUrl: './login.html',
 })
-export class Login {
+export class Login implements OnInit {
     private readonly formularios = inject(NonNullableFormBuilder);
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly autenticacion = inject(AutenticacionService);
@@ -26,7 +26,6 @@ export class Login {
 
     protected readonly enviando = signal(false);
     protected readonly registrando = signal(false);
-    protected readonly cuentaCreada = signal(false);
     protected readonly intentandoEnviar = signal(false);
     protected readonly modo = signal<'login' | 'registro'>('login');
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
@@ -35,6 +34,12 @@ export class Login {
         email: ['', [Validators.required, Validators.email, Validators.pattern(patronCorreo)]],
         password: ['', [Validators.required, passwordValida]],
     });
+
+    ngOnInit(): void {
+        if (this.autenticacion.usuarioActual()) {
+            void this.router.navigate(['/publicaciones']);
+        }
+    }
 
     protected mensajeError(control: AbstractControl): string {
         return errorFormulario(control, control === this.loginForm.controls.email
@@ -50,13 +55,10 @@ export class Login {
         this.modo.set(modo);
         this.loginForm.reset();
         this.intentandoEnviar.set(false);
-        this.cuentaCreada.set(false);
     }
 
-    protected completarRegistro(correo: string): void {
-        this.cambiarModo('login');
-        this.loginForm.controls.email.setValue(correo);
-        this.cuentaCreada.set(true);
+    protected completarRegistro(): void {
+        void this.router.navigate(['/publicaciones']);
     }
 
     protected normalizarEmail(): void {

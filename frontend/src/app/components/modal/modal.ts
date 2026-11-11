@@ -6,6 +6,7 @@ export interface MensajeModal {
     mensaje: string;
     textoBoton?: string;
     textoConfirmar?: string;
+    textoProcesando?: string;
 }
 
 @Component({

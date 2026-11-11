@@ -39,14 +39,9 @@
             @if (modo() === 'registro') {
                 <app-registro
                     (cargando)="registrando.set($event)"
-                    (registrado)="completarRegistro($event)"
+                    (registrado)="completarRegistro()"
                 ></app-registro>
             } @else {
-                @if (cuentaCreada()) {
-                    <p class="login-confirmacion" role="status">
-                        Cuenta creada. Ingresá con tu correo y contraseña.
-                    </p>
-                }
 
                 <form class="login-form" aria-labelledby="login-title" [formGroup]="loginForm" (ngSubmit)="enviarLogin()" novalidate>
                     <div class="form-field">

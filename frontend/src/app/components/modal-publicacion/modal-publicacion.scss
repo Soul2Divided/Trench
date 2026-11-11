@@ -1,0 +1,192 @@
+:host {
+    display: contents;
+}
+
+.detalle-publicacion {
+    position: fixed;
+    width: min(96vw, 100rem);
+    height: 90svh;
+    max-width: none;
+    max-height: 94svh;
+    padding: 0;
+    overflow: hidden;
+    border: var(--border-default);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+    box-shadow: var(--shadow-card);
+
+    &::backdrop {
+        background-color: rgb(17 22 24 / 80%);
+        backdrop-filter: blur(4px);
+    }
+}
+
+.detalle-publicacion__distribucion {
+    display: grid;
+    height: 100%;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+}
+
+.detalle-publicacion__imagen {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-ink);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.detalle-publicacion__columna {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    border-left: var(--border-default);
+}
+
+.detalle-publicacion__contenido {
+    max-height: 40%;
+    flex-shrink: 0;
+    padding: 1.25rem;
+    overflow-y: auto;
+    border-bottom: var(--border-default);
+    overflow-wrap: anywhere;
+
+    h2 {
+        margin: 1rem 0 0.75rem;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+}
+
+.detalle-publicacion__autor {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-right: 2rem;
+
+    > div {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.6875rem;
+    }
+}
+
+.detalle-publicacion__nombre {
+    font-size: 0.8125rem;
+    font-weight: 800;
+}
+
+.detalle-publicacion__mensaje {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.detalle-publicacion__resumen {
+    margin: 1rem 0 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
+.detalle-publicacion__cerrar {
+    position: absolute;
+    z-index: 1;
+    top: 0.625rem;
+    right: 0.625rem;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    color: var(--color-ink);
+    cursor: pointer;
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+@media (max-width: 64rem) {
+    .detalle-publicacion__distribucion {
+        grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+    }
+}
+
+@media (max-width: 44rem) {
+    .detalle-publicacion {
+        width: 96vw;
+        height: 94svh;
+    }
+
+    .detalle-publicacion__distribucion {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 30%) minmax(0, 1fr);
+    }
+
+    .detalle-publicacion__columna {
+        border-top: var(--border-default);
+        border-left: 0;
+    }
+}
+
+.detalle-publicacion--solo-texto {
+    width: min(94vw, 48rem);
+
+    .detalle-publicacion__distribucion {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+    }
+
+    .detalle-publicacion__columna {
+        border: 0;
+    }
+
+    .detalle-publicacion__contenido {
+        max-height: 45%;
+        padding: clamp(1.25rem, 4vw, 2rem);
+        background-color: color-mix(in srgb, var(--color-background) 35%, var(--color-white));
+        background-image: radial-gradient(
+            ellipse 30rem 22rem at -8rem -16rem,
+            transparent 68%,
+            var(--color-accent) 68% 71%,
+            var(--color-white) 71% 74%,
+            var(--color-surface) 74% 78%,
+            var(--color-primary) 78% 87%,
+            var(--color-surface) 87% 91%,
+            transparent 91%
+        ), radial-gradient(
+            ellipse 30rem 22rem at calc(100% + 8rem) calc(100% + 16rem),
+            transparent 68%,
+            var(--color-primary) 68% 77%,
+            var(--color-surface) 77% 81%,
+            var(--color-white) 81% 84%,
+            var(--color-accent) 84% 87%,
+            transparent 87%
+        );
+
+        h2 {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+        }
+    }
+
+    .detalle-publicacion__mensaje {
+        font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+        line-height: 1.6;
+    }
+}

@@ -4,12 +4,14 @@ import { FileModule } from '../file/file.module.js';
 import { UsuariosModule } from '../usuarios/usuarios.module.js';
 import { AutenticacionController } from './autenticacion.controller.js';
 import { AutenticacionService } from './autenticacion.service.js';
+import { AuthGuard } from './auth.guard.js';
 
 @Module({
     imports: [UsuariosModule, FileModule],
     controllers: [AutenticacionController],
     providers: [
         AutenticacionService,
+        AuthGuard,
         {
             provide: PasswordHasher,
             useFactory: () => new PasswordHasher(),

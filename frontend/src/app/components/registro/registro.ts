@@ -46,7 +46,7 @@ export class Registro {
         fechaNacimiento: ['', [Validators.required, fechaNacimientoValida]],
         descripcion: ['', [textoObligatorio, Validators.maxLength(250)]],
         imagen: this.formularios.control<File | null>(null, [Validators.required, imagenPerfilValida]),
-        perfil: this.formularios.control<'usuario'>('usuario'),
+        rol: this.formularios.control<'usuario'>('usuario'),
     }, { validators: contrasenasCoinciden });
 
     protected mensajeError(control: AbstractControl, obligatorio: string): string {

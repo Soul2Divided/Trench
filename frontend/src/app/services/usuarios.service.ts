@@ -11,11 +11,11 @@ export class UsuariosService {
 
     private readonly url = `${environment.apiUrl}/usuarios`;
 
-    obtenerPorId(id: string): Observable<UsuarioAutenticado> {
-        return this.http.get<UsuarioAutenticado>(`${this.url}/${encodeURIComponent(id)}`);
+    obtenerPerfil(): Observable<UsuarioAutenticado> {
+        return this.http.get<UsuarioAutenticado>(`${this.url}/mi-perfil`);
     }
 
-    actualizarPerfil(id: string, datos: FormData): Observable<UsuarioAutenticado> {
-        return this.http.patch<UsuarioAutenticado>(`${this.url}/${encodeURIComponent(id)}`, datos);
+    actualizarPerfil(datos: FormData): Observable<UsuarioAutenticado> {
+        return this.http.patch<UsuarioAutenticado>(`${this.url}/mi-perfil`, datos);
     }
 }

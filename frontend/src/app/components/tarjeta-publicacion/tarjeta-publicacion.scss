@@ -71,6 +71,29 @@
     overflow-wrap: anywhere;
 }
 
+.publicacion__abrir,
+.publicacion__ver-imagen {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+.publicacion__abrir:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+}
+
+.publicacion__ver-imagen {
+    display: block;
+    max-width: 100%;
+    margin-inline: auto;
+    border-radius: var(--radius-control);
+}
+
 .publicacion__imagen {
     width: auto;
     height: auto;

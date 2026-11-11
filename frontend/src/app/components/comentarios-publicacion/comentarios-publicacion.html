@@ -1,19 +1,72 @@
-<section class="comentarios-perfil" [attr.aria-labelledby]="'comentarios-' + publicacionId()" [attr.aria-busy]="cargando()">
+<section class="comentarios-publicacion" [attr.aria-labelledby]="'comentarios-' + publicacionId()">
     <h3 [id]="'comentarios-' + publicacionId()">Comentarios</h3>
 
-    @if (cargando()) {
-        <div class="carga-en-linea" role="status">
-            <span class="spinner" aria-hidden="true"></span>
-            <p>Cargando comentarios…</p>
-        </div>
-    } @else if (errorCarga()) {
-        <p role="alert">No pudimos cargar los comentarios.</p>
-        <button class="button" type="button" (click)="cargar(publicacionId())">Reintentar</button>
-    } @else {
+    <div class="comentarios-publicacion__listado" [attr.aria-busy]="cargando()">
         @for (comentario of comentarios(); track comentario.id) {
-            <app-comentario [comentario]="comentario" />
-        } @empty {
+            <app-comentario
+                [comentario]="comentario"
+                [bloqueado]="enviando() || eliminando() || cargando()"
+                [enEdicion]="comentarioEditando()?.id === comentario.id"
+                (editar)="editarComentario($event)"
+                (eliminar)="solicitarEliminacion($event)"
+            />
+        }
+
+        @if (cargando()) {
+            <div class="carga-en-linea" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                <p>Cargando comentarios…</p>
+            </div>
+        } @else if (errorCarga()) {
+            <p role="alert">No pudimos cargar los comentarios.</p>
+            <button class="button" type="button" (click)="cargarMas()">Reintentar</button>
+        } @else if (!comentarios().length) {
             <p>Esta publicación todavía no tiene comentarios.</p>
         }
-    }
+
+        @if (hayMas() && !cargando() && !errorCarga()) {
+            <button class="button" type="button" [disabled]="enviando() || eliminando()" (click)="cargarMas()">Cargar más</button>
+        }
+    </div>
+
+    <form class="comentarios-publicacion__formulario" [attr.aria-busy]="enviando()" (submit)="guardarComentario($event)">
+        <label class="form-label" [for]="'nuevo-comentario-' + publicacionId()">
+            {{ comentarioEditando() ? 'Editá tu comentario' : 'Escribí un comentario' }}
+        </label>
+
+        <textarea
+            #campoMensaje
+            class="form-control"
+            [id]="'nuevo-comentario-' + publicacionId()"
+            [formControl]="mensaje"
+            placeholder="Sumate a la conversación…"
+            rows="2"
+            [readOnly]="enviando() || eliminando()"
+        ></textarea>
+
+        @if (errorEnvio()) {
+            <p class="form-error" role="alert">
+                {{ comentarioEditando() ? 'No pudimos guardar los cambios. Intentá nuevamente.' : 'No pudimos publicar tu comentario. Intentá nuevamente.' }}
+            </p>
+        }
+
+        <div class="comentarios-publicacion__acciones">
+            @if (comentarioEditando()) {
+                <button class="button" type="button" [disabled]="enviando() || eliminando()" (click)="cancelarEdicion()">Cancelar</button>
+            }
+
+            <button class="button button--accent" type="submit" [disabled]="enviando() || cargando() || eliminando() || !mensaje.value.trim()">
+                {{ enviando() ? (comentarioEditando() ? 'Guardando…' : 'Publicando…') : (comentarioEditando() ? 'Guardar cambios' : 'Comentar') }}
+            </button>
+        </div>
+    </form>
 </section>
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal
+        [mensaje]="mensaje"
+        [procesando]="eliminando()"
+        (confirmado)="eliminarComentario()"
+        (cerrado)="mensajeModal.set(null)"
+    />
+}

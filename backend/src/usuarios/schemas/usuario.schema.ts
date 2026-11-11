@@ -33,7 +33,7 @@ export class Usuario {
     imagenPerfilPublicId: string;
 
     @Prop({ required: true, enum: ['usuario', 'administrador'], default: 'usuario' })
-    perfil: 'usuario' | 'administrador';
+    rol: 'usuario' | 'administrador';
 }
 
 export const UsuarioSchema = SchemaFactory.createForClass(Usuario);

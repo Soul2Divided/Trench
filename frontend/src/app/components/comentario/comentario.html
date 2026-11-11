@@ -1,4 +1,4 @@
-<article class="comentario">
+<article class="comentario" [class.comentario--editando]="enEdicion()">
     <img class="avatar comentario__avatar" [src]="comentario().autor.imagenPerfilUrl" alt="" loading="lazy">
 
     <div class="comentario__contenido">
@@ -11,8 +11,26 @@
 
         <p>{{ comentario().mensaje }}</p>
 
-        @if (comentario().editado) {
-            <span class="comentario__estado">Editado</span>
-        }
+        <div class="comentario__acciones">
+            @if (comentario().editado) {
+                <span class="comentario__estado">Editado</span>
+            }
+
+            @if (propio()) {
+                <div class="comentario__botones">
+                    <button class="comentario__boton" type="button" aria-label="Editar comentario" title="Editar comentario" [disabled]="bloqueado()" (click)="editar.emit(comentario())">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m16 3 5 5-12 12-6 1 1-6ZM13 6l5 5" />
+                        </svg>
+                    </button>
+
+                    <button class="comentario__boton" type="button" aria-label="Eliminar comentario" title="Eliminar comentario" [disabled]="bloqueado()" (click)="eliminar.emit(comentario())">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
+                        </svg>
+                    </button>
+                </div>
+            }
+        </div>
     </div>
 </article>

@@ -1,5 +1,7 @@
 import { PasswordHasher } from '@nestjs/authentication';
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { CookieOptions, Response } from 'express';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { RegisterUsuarioDto } from './dto/register-usuario.dto.js';
 import { LoginUsuarioDto } from './dto/login-usuario.dto.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
@@ -8,10 +10,18 @@ import { CloudinaryService } from '../file/cloudinary.service.js';
 
 @Injectable()
 export class AutenticacionService {
+    private readonly opcionesCookie: CookieOptions = {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+    };
+
     constructor(
         private readonly passwordHasher: PasswordHasher,
         private readonly usuariosService: UsuariosService,
         private readonly cloudinaryService: CloudinaryService,
+        private readonly jwtService: JwtService,
     ) { }
 
     async registerUser(registerDto: RegisterUsuarioDto, imagen: Express.Multer.File) {
@@ -58,6 +68,7 @@ export class AutenticacionService {
         }
 
         return {
+            token: await this.generateToken(usuario),
             id: usuario._id.toString(),
             nombre: usuario.nombre,
             apellido: usuario.apellido,
@@ -66,7 +77,7 @@ export class AutenticacionService {
             fechaNacimiento: usuario.fechaNacimiento,
             descripcion: usuario.descripcion,
             imagenPerfilUrl: usuario.imagenPerfilUrl,
-            perfil: usuario.perfil,
+            rol: usuario.rol,
         };
     }
 
@@ -83,6 +94,7 @@ export class AutenticacionService {
         }
 
         return {
+            token: await this.generateToken(usuario),
             id: usuario._id.toString(),
             nombre: usuario.nombre,
             apellido: usuario.apellido,
@@ -91,7 +103,59 @@ export class AutenticacionService {
             fechaNacimiento: usuario.fechaNacimiento,
             descripcion: usuario.descripcion,
             imagenPerfilUrl: usuario.imagenPerfilUrl,
-            perfil: usuario.perfil,
+            rol: usuario.rol,
         };
+    }
+
+    async autorizar(id: string) {
+        try {
+            return await this.usuariosService.obtenerPorId(id);
+        } catch (error: unknown) {
+            if (error instanceof NotFoundException) {
+                throw new UnauthorizedException('El usuario de la sesión ya no existe.');
+            }
+
+            throw error;
+        }
+    }
+
+    async refrescar(id: string) {
+        const usuario = await this.autorizar(id);
+        const token = await this.generateToken({ ...usuario, _id: usuario.id });
+
+        return { ...usuario, token };
+    }
+
+    generateToken(usuario: { _id: { toString(): string }; correo: string; rol: string }) {
+        const payload = {
+            correo: usuario.correo,
+            sub: usuario._id.toString(),
+            rol: usuario.rol,
+        };
+
+        return this.jwtService.signAsync(payload);
+    }
+
+    setTokenCookie(res: Response, token: string) {
+        const payload = this.jwtService.decode<{ iat: number; exp: number }>(token);
+
+        res.cookie('token', token, {
+            ...this.opcionesCookie,
+            maxAge: Math.max(0, payload.exp * 1000 - Date.now()),
+        });
+
+        return this.tiemposSesion(payload);
+    }
+
+    tiemposSesion(payload: { iat: number; exp: number }) {
+        return {
+            avisoEn: payload.iat * 1000 + 15 * 1000,
+            // avisoEn: payload.iat * 1000 + 10 * 60 * 1000,
+            venceEn: payload.exp * 1000,
+        };
+    }
+
+    cerrarSesion(res: Response): void {
+        res.clearCookie('token', this.opcionesCookie);
     }
 }

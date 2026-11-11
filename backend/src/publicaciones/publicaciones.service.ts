@@ -256,7 +256,7 @@ export class PublicacionesService {
             throw new NotFoundException('La publicación no existe o ya no está disponible.');
         }
 
-        if (publicacion.autor.toString() !== usuario.id && usuario.perfil !== 'administrador') {
+        if (publicacion.autor.toString() !== usuario.id && usuario.rol !== 'administrador') {
             throw new ForbiddenException('Solo el autor o un administrador pueden eliminar esta publicación.');
         }
 

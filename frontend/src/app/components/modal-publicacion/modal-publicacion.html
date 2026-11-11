@@ -1,0 +1,50 @@
+<dialog
+    #dialogo
+    class="detalle-publicacion"
+    [class.detalle-publicacion--solo-texto]="!publicacion().imagenUrl"
+    [attr.aria-labelledby]="'detalle-titulo-' + publicacion().id"
+    (cancel)="cerrar($event)"
+    (click)="cerrarDesdeFondo($event)"
+>
+    <button class="detalle-publicacion__cerrar" type="button" aria-label="Cerrar publicación" autofocus (click)="cerrar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" />
+        </svg>
+    </button>
+
+    <div class="detalle-publicacion__distribucion">
+        @if (publicacion().imagenUrl) {
+            <div class="detalle-publicacion__imagen">
+                <img [src]="publicacion().imagenUrl" [alt]="'Imagen de ' + publicacion().titulo">
+            </div>
+        }
+
+        <div class="detalle-publicacion__columna">
+            <section class="detalle-publicacion__contenido">
+                <header class="detalle-publicacion__autor">
+                    <img class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="">
+
+                    <div>
+                        <span class="detalle-publicacion__nombre">{{ publicacion().autor.nombre }} {{ publicacion().autor.apellido }}</span>
+                        <span>&#64;{{ publicacion().autor.nombreUsuario }}</span>
+
+                        <time [attr.datetime]="publicacion().fechaCreacion">
+                            {{ publicacion().fechaCreacion | date:'d MMM y, HH:mm' }}
+                        </time>
+                    </div>
+                </header>
+
+                <h2 [id]="'detalle-titulo-' + publicacion().id">{{ publicacion().titulo }}</h2>
+
+                <p class="detalle-publicacion__mensaje">{{ publicacion().mensaje }}</p>
+
+                <p class="detalle-publicacion__resumen">{{ publicacion().meGusta }} Me gusta · {{ publicacion().comentarios }} Comentarios</p>
+            </section>
+
+            <app-comentarios-publicacion
+                [publicacionId]="publicacion().id"
+                (totalActualizado)="comentariosActualizados.emit($event)"
+            />
+        </div>
+    </div>
+</dialog>

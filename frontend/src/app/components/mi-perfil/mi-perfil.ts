@@ -7,7 +7,6 @@ import { Publicacion } from '../../models/publicacion';
 import { AutenticacionService, UsuarioAutenticado } from '../../services/autenticacion.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { UsuariosService } from '../../services/usuarios.service';
-import { ComentariosPublicacion } from '../comentarios-publicacion/comentarios-publicacion';
 import { Navbar } from '../navbar/navbar';
 import { PanelUsuario } from '../panel-usuario/panel-usuario';
 import { TarjetaPublicacion } from '../tarjeta-publicacion/tarjeta-publicacion';
@@ -15,7 +14,7 @@ import { DatosPerfil } from './components/datos-perfil/datos-perfil';
 
 @Component({
     selector: 'app-mi-perfil',
-    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, ComentariosPublicacion, RouterLink],
+    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, RouterLink],
     templateUrl: './mi-perfil.html',
     styleUrl: './mi-perfil.scss',
 })
@@ -53,7 +52,7 @@ export class MiPerfil implements OnInit {
         this.cargandoUsuario.set(true);
         this.errorUsuario.set(false);
 
-        this.peticionUsuario = this.usuariosService.obtenerPorId(id)
+        this.peticionUsuario = this.usuariosService.obtenerPerfil()
             .pipe(
                 // takeUntilDestroyed cancela la suscripción si se destruye el componente, por ejemplo al navegar a otra pantalla
                 takeUntilDestroyed(this.destroyRef),
@@ -74,6 +73,12 @@ export class MiPerfil implements OnInit {
         this.cargarPublicaciones();
     }
 
+    protected actualizarComentarios(estado: { id: string; comentarios: number }): void {
+        this.publicaciones.update(actuales => actuales.map(publicacion => {
+            return publicacion.id === estado.id ? { ...publicacion, comentarios: estado.comentarios } : publicacion;
+        }));
+    }
+
     protected cargarPublicaciones(): void {
         const usuarioId = this.sesion()?.id;
 
@@ -87,7 +92,7 @@ export class MiPerfil implements OnInit {
         this.totalPublicaciones.set(null);
 
         this.peticionPublicaciones = this.publicacionesService.listar({
-            usuarioId,
+            autorId: usuarioId,
             offset: 0,
             limit: 3,
             orden: 'fecha',

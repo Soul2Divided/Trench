@@ -29,7 +29,7 @@ export interface ConsultaPublicaciones {
     offset: number;
     limit: number;
     orden: OrdenPublicaciones;
-    usuarioId?: string;
+    autorId?: string;
 }
 
 export interface PaginaPublicaciones {
@@ -43,4 +43,9 @@ export interface ComentarioPublicacion {
     fechaCreacion: string;
     mensaje: string;
     editado: boolean;
+}
+
+export interface PaginaComentarios {
+    comentarios: ComentarioPublicacion[];
+    total: number;
 }
