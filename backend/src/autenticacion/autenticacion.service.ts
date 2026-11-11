@@ -12,7 +12,7 @@ import { CloudinaryService } from '../file/cloudinary.service.js';
 export class AutenticacionService {
     private readonly opcionesCookie: CookieOptions = {
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
     };

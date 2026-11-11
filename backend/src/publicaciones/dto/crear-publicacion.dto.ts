@@ -1,9 +1,6 @@
-import { IsMongoId, IsString, Matches } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
 
 export class CrearPublicacionDto {
-    @IsMongoId({ message: 'El identificador del usuario no es válido.' })
-    usuarioId: string;
-
     @IsString({ message: 'El título debe ser un texto.' })
     @Matches(/\S/, { message: 'El título no puede estar vacío ni contener solo espacios.' })
     titulo: string;

@@ -8,6 +8,8 @@ import { CloudinaryService } from '../file/cloudinary.service.js';
 import type { UsuarioDocument } from '../usuarios/schemas/usuario.schema.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
+import { CrearComentarioDto } from './dto/crear-comentario.dto.js';
+import { ListarComentariosDto } from './dto/listar-comentarios.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
 import { Comentario } from './schemas/comentario.schema.js';
 import { MeGusta } from './schemas/me-gusta.schema.js';
@@ -32,11 +34,13 @@ export class PublicacionesService {
         private readonly usuariosService: UsuariosService,
     ) {}
 
-    async listar(consulta: ListarPublicacionesDto) {
+    /* --- Publicaciones --- */
+
+    async listar(consulta: ListarPublicacionesDto, usuarioActualId: string) {
         const filtro: QueryFilter<Publicacion> = { activa: true };
 
-        if (consulta.usuarioId) {
-            filtro.autor = new Types.ObjectId(consulta.usuarioId);
+        if (consulta.autorId) {
+            filtro.autor = new Types.ObjectId(consulta.autorId);
         }
 
         let orden: Record<string, SortOrder> = { fechaCreacion: -1, _id: -1 };
@@ -63,9 +67,9 @@ export class PublicacionesService {
         const publicacionIds = publicaciones.map(publicacion => publicacion._id);
         const [cantidadComentariosPorPublicacion, meGustaDelUsuario] = await Promise.all([
             this.obtenerCantidadComentariosPorPublicacion(publicacionIds),
-            consulta.usuarioActualId && publicacionIds.length > 0
+            publicacionIds.length > 0
                 ? this.meGustaModel.find({
-                    usuario: consulta.usuarioActualId,
+                    usuario: usuarioActualId,
                     publicacion: { $in: publicacionIds },
                 }).select('publicacion').lean().exec()
                 : Promise.resolve([]),
@@ -102,38 +106,8 @@ export class PublicacionesService {
         };
     }
 
-    async obtenerComentarios(id: string) {
-        const publicacion = await this.publicacionModel.exists({ _id: id, activa: true }).exec();
-
-        if (!publicacion) {
-            throw new NotFoundException('La publicación no existe o ya no está disponible.');
-        }
-
-        const comentarios = await this.comentarioModel
-            .find({ publicacion: id })
-            .sort({ fechaCreacion: -1, _id: -1 })
-            .populate<{ autor: UsuarioDocument }>('autor', 'nombre apellido nombreUsuario imagenPerfilUrl')
-            .exec();
-
-        const comentariosParaMostrar = comentarios.map(comentario => ({
-            id: comentario._id.toString(),
-            autor: {
-                id: comentario.autor._id.toString(),
-                nombre: comentario.autor.nombre,
-                apellido: comentario.autor.apellido,
-                nombreUsuario: comentario.autor.nombreUsuario,
-                imagenPerfilUrl: comentario.autor.imagenPerfilUrl,
-            },
-            fechaCreacion: comentario.fechaCreacion,
-            mensaje: comentario.mensaje,
-            editado: comentario.editado,
-        }));
-
-        return comentariosParaMostrar;
-    }
-
-    async crear(datos: CrearPublicacionDto, imagen?: Express.Multer.File) {
-        const usuario = await this.usuariosService.obtenerPorId(datos.usuarioId);
+    async crear(usuarioId: string, datos: CrearPublicacionDto, imagen?: Express.Multer.File) {
+        const usuario = await this.usuariosService.obtenerPorId(usuarioId);
 
         const imagenSubida = imagen
             ? await this.cloudinaryService.subirImagen(imagen.buffer, 'trench/publicaciones')
@@ -179,6 +153,189 @@ export class PublicacionesService {
             comentarios: 0,
         };
     }
+
+    async eliminar(id: string, usuarioId: string): Promise<void> {
+        const usuario = await this.usuariosService.obtenerPorId(usuarioId);
+        const publicacion = await this.publicacionModel.findOne({ _id: id, activa: true }).exec();
+
+        if (!publicacion) {
+            throw new NotFoundException('La publicación no existe o ya no está disponible.');
+        }
+
+        if (publicacion.autor.toString() !== usuario.id && usuario.rol !== 'administrador') {
+            throw new ForbiddenException('Solo el autor o un administrador pueden eliminar esta publicación.');
+        }
+
+        const resultado = await this.publicacionModel.updateOne(
+            { _id: id, activa: true },
+            { $set: { activa: false } },
+        ).exec();
+
+        if (resultado.matchedCount === 0) {
+            throw new NotFoundException('La publicación ya no está disponible.');
+        }
+    }
+
+    /* --- Comentarios --- */
+
+    async obtenerComentarios(id: string, consulta: ListarComentariosDto) {
+        const publicacion = await this.publicacionModel.exists({ _id: id, activa: true }).exec();
+
+        if (!publicacion) {
+            throw new NotFoundException('La publicación no existe o ya no está disponible.');
+        }
+
+        const consultaComentarios = this.comentarioModel
+            .find({ publicacion: id })
+            .sort({ fechaCreacion: 1, _id: 1 })
+            .skip(consulta.offset)
+            .limit(consulta.limit)
+            .populate<{ autor: UsuarioDocument }>('autor', 'nombre apellido nombreUsuario imagenPerfilUrl')
+            .exec();
+
+        const [comentarios, total] = await Promise.all([
+            consultaComentarios,
+            this.comentarioModel.countDocuments({ publicacion: id }).exec(),
+        ]);
+
+        const comentariosParaMostrar = comentarios.map(comentario => ({
+            id: comentario._id.toString(),
+            autor: {
+                id: comentario.autor._id.toString(),
+                nombre: comentario.autor.nombre,
+                apellido: comentario.autor.apellido,
+                nombreUsuario: comentario.autor.nombreUsuario,
+                imagenPerfilUrl: comentario.autor.imagenPerfilUrl,
+            },
+            fechaCreacion: comentario.fechaCreacion,
+            mensaje: comentario.mensaje,
+            editado: comentario.editado,
+        }));
+
+        return { comentarios: comentariosParaMostrar, total };
+    }
+
+    async crearComentario(id: string, usuarioId: string, datos: CrearComentarioDto) {
+        const usuario = await this.usuariosService.obtenerPorId(usuarioId);
+        const publicacion = await this.publicacionModel.exists({ _id: id, activa: true }).exec();
+
+        if (!publicacion) {
+            throw new NotFoundException('La publicación no existe o ya no está disponible.');
+        }
+
+        const comentario = new this.comentarioModel({
+            publicacion: id,
+            autor: usuario.id,
+            mensaje: datos.mensaje,
+        });
+
+        await comentario.save();
+
+        return {
+            id: comentario._id.toString(),
+            autor: {
+                id: usuario.id,
+                nombre: usuario.nombre,
+                apellido: usuario.apellido,
+                nombreUsuario: usuario.nombreUsuario,
+                imagenPerfilUrl: usuario.imagenPerfilUrl,
+            },
+            fechaCreacion: comentario.fechaCreacion,
+            mensaje: comentario.mensaje,
+            editado: comentario.editado,
+        };
+    }
+
+    async actualizarComentario(id: string, comentarioId: string, usuarioId: string, datos: CrearComentarioDto) {
+        const { comentario, usuario } = await this.obtenerComentarioPropio(id, comentarioId, usuarioId);
+
+        comentario.mensaje = datos.mensaje;
+        comentario.editado = true;
+
+        await comentario.save();
+
+        return {
+            id: comentario._id.toString(),
+            autor: {
+                id: usuario.id,
+                nombre: usuario.nombre,
+                apellido: usuario.apellido,
+                nombreUsuario: usuario.nombreUsuario,
+                imagenPerfilUrl: usuario.imagenPerfilUrl,
+            },
+            fechaCreacion: comentario.fechaCreacion,
+            mensaje: comentario.mensaje,
+            editado: comentario.editado,
+        };
+    }
+
+    async eliminarComentario(id: string, comentarioId: string, usuarioId: string): Promise<void> {
+        const { comentario } = await this.obtenerComentarioPropio(id, comentarioId, usuarioId);
+
+        await comentario.deleteOne();
+    }
+
+    private async obtenerComentarioPropio(id: string, comentarioId: string, usuarioId: string) {
+        const usuario = await this.usuariosService.obtenerPorId(usuarioId);
+        const publicacion = await this.publicacionModel.exists({ _id: id, activa: true }).exec();
+
+        if (!publicacion) {
+            throw new NotFoundException('La publicación no existe o ya no está disponible.');
+        }
+
+        const comentario = await this.comentarioModel.findOne({ _id: comentarioId, publicacion: id }).exec();
+
+        if (!comentario) {
+            throw new NotFoundException('El comentario no existe en esta publicación.');
+        }
+
+        if (!comentario.autor.equals(usuario.id)) {
+            throw new ForbiddenException('Solo el autor puede editar o eliminar este comentario.');
+        }
+
+        return { comentario, usuario };
+    }
+
+    private async obtenerCantidadComentariosPorPublicacion(publicacionIds: Types.ObjectId[]): Promise<Map<string, number>> {
+        const cantidadComentariosPorPublicacion = new Map<string, number>();
+
+        if (publicacionIds.length === 0) {
+            return cantidadComentariosPorPublicacion;
+        }
+
+        const publicacionesConCantidadComentarios = await this.comentarioModel
+            .aggregate<PublicacionConCantidadComentarios>([
+                {
+                    $match: {
+                        publicacion: { $in: publicacionIds },
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$publicacion',
+                        cantidadComentarios: { $sum: 1 },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        publicacionId: '$_id',
+                        cantidadComentarios: 1,
+                    },
+                },
+            ])
+            .exec();
+
+        for (const publicacion of publicacionesConCantidadComentarios) {
+            const publicacionId = publicacion.publicacionId.toString();
+
+            cantidadComentariosPorPublicacion.set(publicacionId, publicacion.cantidadComentarios);
+        }
+
+        return cantidadComentariosPorPublicacion;
+    }
+
+    /* --- Me gusta --- */
 
     async cambiarMeGusta(id: string, usuarioId: string, darMeGusta: boolean) {
         await this.usuariosService.obtenerPorId(usuarioId);
@@ -247,66 +404,4 @@ export class PublicacionesService {
             throw error;
         }
     }
-
-    async eliminar(id: string, usuarioId: string): Promise<void> {
-        const usuario = await this.usuariosService.obtenerPorId(usuarioId);
-        const publicacion = await this.publicacionModel.findOne({ _id: id, activa: true }).exec();
-
-        if (!publicacion) {
-            throw new NotFoundException('La publicación no existe o ya no está disponible.');
-        }
-
-        if (publicacion.autor.toString() !== usuario.id && usuario.rol !== 'administrador') {
-            throw new ForbiddenException('Solo el autor o un administrador pueden eliminar esta publicación.');
-        }
-
-        const resultado = await this.publicacionModel.updateOne(
-            { _id: id, activa: true },
-            { $set: { activa: false } },
-        ).exec();
-
-        if (resultado.matchedCount === 0) {
-            throw new NotFoundException('La publicación ya no está disponible.');
-        }
-    }
-
-    private async obtenerCantidadComentariosPorPublicacion(publicacionIds: Types.ObjectId[]): Promise<Map<string, number>> {
-        const cantidadComentariosPorPublicacion = new Map<string, number>();
-
-        if (publicacionIds.length === 0) {
-            return cantidadComentariosPorPublicacion;
-        }
-
-        const publicacionesConCantidadComentarios = await this.comentarioModel
-            .aggregate<PublicacionConCantidadComentarios>([
-                {
-                    $match: {
-                        publicacion: { $in: publicacionIds },
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$publicacion',
-                        cantidadComentarios: { $sum: 1 },
-                    },
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        publicacionId: '$_id',
-                        cantidadComentarios: 1,
-                    },
-                },
-            ])
-            .exec();
-
-        for (const publicacion of publicacionesConCantidadComentarios) {
-            const publicacionId = publicacion.publicacionId.toString();
-
-            cantidadComentariosPorPublicacion.set(publicacionId, publicacion.cantidadComentarios);
-        }
-
-        return cantidadComentariosPorPublicacion;
-    }
-
 }
