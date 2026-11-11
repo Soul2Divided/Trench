@@ -5,33 +5,36 @@ import {
     FileTypeValidator,
     Get,
     MaxFileSizeValidator,
-    Param,
     ParseFilePipe,
     Patch,
+    Req,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { MongoIdPipe } from '../pipes/mongo-id.pipe.js';
+import { AuthGuard } from '../autenticacion/auth.guard.js';
+import type { SolicitudAutenticada } from '../autenticacion/auth.guard.js';
 import { ActualizarPerfilDto } from './dto/actualizar-perfil.dto.js';
 import { UsuariosService } from './usuarios.service.js';
 
 const TAMANO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
 @Controller('usuarios')
+@UseGuards(AuthGuard)
 export class UsuariosController {
     constructor(private readonly usuariosService: UsuariosService) {}
 
-    @Get(':id')
-    obtenerPorId(@Param('id', MongoIdPipe) id: string) {
-        return this.usuariosService.obtenerPorId(id);
+    @Get('mi-perfil')
+    obtenerPerfil(@Req() request: SolicitudAutenticada) {
+        return this.usuariosService.obtenerPorId(request.user.sub);
     }
 
-    @Patch(':id')
+    @Patch('mi-perfil')
     @UseInterceptors(FileInterceptor('imagen', { limits: { fileSize: TAMANO_MAXIMO_IMAGEN } }))
     actualizarPerfil(
-        @Param('id', MongoIdPipe) id: string,
+        @Req() request: SolicitudAutenticada,
         @Body() datos: ActualizarPerfilDto,
         @UploadedFile(new ParseFilePipe({
             fileIsRequired: false,
@@ -49,6 +52,6 @@ export class UsuariosController {
         }))
         imagen?: Express.Multer.File,
     ) {
-        return this.usuariosService.actualizarPerfil(id, datos, imagen);
+        return this.usuariosService.actualizarPerfil(request.user.sub, datos, imagen);
     }
 }

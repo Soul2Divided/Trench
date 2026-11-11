@@ -1,3 +1,3 @@
 export const environment = {
-    apiUrl: 'https://trench-angular.vercel.app/',
+    apiUrl: 'https://trench-sand.vercel.app',
 };

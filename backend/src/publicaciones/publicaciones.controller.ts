@@ -5,6 +5,7 @@ import {
     Delete,
     FileTypeValidator,
     Get,
+    Put,
     HttpCode,
     HttpStatus,
     MaxFileSizeValidator,
@@ -12,37 +13,39 @@ import {
     ParseFilePipe,
     Post,
     Query,
+    Req,
     UploadedFile,
     UseInterceptors,
+    UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { MongoIdPipe } from '../pipes/mongo-id.pipe.js';
+import { AuthGuard } from '../autenticacion/auth.guard.js';
+import type { SolicitudAutenticada } from '../autenticacion/auth.guard.js';
+import { CrearComentarioDto } from './dto/crear-comentario.dto.js';
+import { ListarComentariosDto } from './dto/listar-comentarios.dto.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
-import { DarMeGustaDto } from './dto/dar-me-gusta.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
 import { PublicacionesService } from './publicaciones.service.js';
 
 const TAMANO_MAXIMO_IMAGEN = 5 * 1024 * 1024;
 
 @Controller('publicaciones')
+@UseGuards(AuthGuard)
 export class PublicacionesController {
     constructor(private readonly publicacionesService: PublicacionesService) {}
 
     @Get()
-    listar(@Query() consulta: ListarPublicacionesDto) {
-        return this.publicacionesService.listar(consulta);
-    }
-
-    @Get(':id/comentarios')
-    obtenerComentarios(@Param('id', MongoIdPipe) id: string) {
-        return this.publicacionesService.obtenerComentarios(id);
+    listar(@Query() consulta: ListarPublicacionesDto, @Req() request: SolicitudAutenticada) {
+        return this.publicacionesService.listar(consulta, request.user.sub);
     }
 
     @Post()
     @UseInterceptors(FileInterceptor('imagen', { limits: { fileSize: TAMANO_MAXIMO_IMAGEN } }))
     crear(
         @Body() datos: CrearPublicacionDto,
+        @Req() request: SolicitudAutenticada,
         @UploadedFile(new ParseFilePipe({
             fileIsRequired: false,
             validators: [
@@ -59,32 +62,73 @@ export class PublicacionesController {
         }))
         imagen?: Express.Multer.File,
     ) {
-        return this.publicacionesService.crear(datos, imagen);
-    }
-
-    @Post(':id/me-gusta')
-    @HttpCode(HttpStatus.OK)
-    darMeGusta(
-        @Param('id', MongoIdPipe) id: string,
-        @Body() datos: DarMeGustaDto,
-    ) {
-        return this.publicacionesService.cambiarMeGusta(id, datos.usuarioId, true);
-    }
-
-    @Delete(':id/me-gusta')
-    quitarMeGusta(
-        @Param('id', MongoIdPipe) id: string,
-        @Query('usuarioId', MongoIdPipe) usuarioId: string,
-    ) {
-        return this.publicacionesService.cambiarMeGusta(id, usuarioId, false);
+        return this.publicacionesService.crear(request.user.sub, datos, imagen);
     }
 
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     eliminar(
         @Param('id', MongoIdPipe) id: string,
-        @Query('usuarioId', MongoIdPipe) usuarioId: string,
+        @Req() request: SolicitudAutenticada,
     ) {
-        return this.publicacionesService.eliminar(id, usuarioId);
+        return this.publicacionesService.eliminar(id, request.user.sub);
+    }
+
+    /* --- Me gusta --- */
+
+    @Post(':id/me-gusta')
+    @HttpCode(HttpStatus.OK)
+    darMeGusta(
+        @Param('id', MongoIdPipe) id: string,
+        @Req() request: SolicitudAutenticada,
+    ) {
+        return this.publicacionesService.cambiarMeGusta(id, request.user.sub, true);
+    }
+
+    @Delete(':id/me-gusta')
+    quitarMeGusta(
+        @Param('id', MongoIdPipe) id: string,
+        @Req() request: SolicitudAutenticada,
+    ) {
+        return this.publicacionesService.cambiarMeGusta(id, request.user.sub, false);
+    }
+
+    /* --- Comentarios --- */
+
+    @Get(':id/comentarios')
+    obtenerComentarios(
+        @Param('id', MongoIdPipe) id: string,
+        @Query() consulta: ListarComentariosDto,
+    ) {
+        return this.publicacionesService.obtenerComentarios(id, consulta);
+    }
+
+    @Post(':id/comentarios')
+    crearComentario(
+        @Param('id', MongoIdPipe) id: string,
+        @Body() datos: CrearComentarioDto,
+        @Req() request: SolicitudAutenticada,
+    ) {
+        return this.publicacionesService.crearComentario(id, request.user.sub, datos);
+    }
+
+    @Put(':id/comentarios/:comentarioId')
+    actualizarComentario(
+        @Param('id', MongoIdPipe) id: string,
+        @Param('comentarioId', MongoIdPipe) comentarioId: string,
+        @Body() datos: CrearComentarioDto,
+        @Req() request: SolicitudAutenticada,
+    ) {
+        return this.publicacionesService.actualizarComentario(id, comentarioId, request.user.sub, datos);
+    }
+
+    @Delete(':id/comentarios/:comentarioId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    eliminarComentario(
+        @Param('id', MongoIdPipe) id: string,
+        @Param('comentarioId', MongoIdPipe) comentarioId: string,
+        @Req() request: SolicitudAutenticada,
+    ) {
+        return this.publicacionesService.eliminarComentario(id, comentarioId, request.user.sub);
     }
 }
