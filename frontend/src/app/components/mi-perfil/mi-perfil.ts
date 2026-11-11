@@ -7,7 +7,6 @@ import { Publicacion } from '../../models/publicacion';
 import { AutenticacionService, UsuarioAutenticado } from '../../services/autenticacion.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { UsuariosService } from '../../services/usuarios.service';
-import { ComentariosPublicacion } from '../comentarios-publicacion/comentarios-publicacion';
 import { Navbar } from '../navbar/navbar';
 import { PanelUsuario } from '../panel-usuario/panel-usuario';
 import { TarjetaPublicacion } from '../tarjeta-publicacion/tarjeta-publicacion';
@@ -15,7 +14,7 @@ import { DatosPerfil } from './components/datos-perfil/datos-perfil';
 
 @Component({
     selector: 'app-mi-perfil',
-    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, ComentariosPublicacion, RouterLink],
+    imports: [Navbar, PanelUsuario, DatosPerfil, TarjetaPublicacion, RouterLink],
     templateUrl: './mi-perfil.html',
     styleUrl: './mi-perfil.scss',
 })
@@ -72,6 +71,12 @@ export class MiPerfil implements OnInit {
         this.usuario.set(usuarioActualizado);
         this.autenticacion.actualizarUsuario(usuarioActualizado);
         this.cargarPublicaciones();
+    }
+
+    protected actualizarComentarios(estado: { id: string; comentarios: number }): void {
+        this.publicaciones.update(actuales => actuales.map(publicacion => {
+            return publicacion.id === estado.id ? { ...publicacion, comentarios: estado.comentarios } : publicacion;
+        }));
     }
 
     protected cargarPublicaciones(): void {

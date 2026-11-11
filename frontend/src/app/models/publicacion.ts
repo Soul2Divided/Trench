@@ -44,3 +44,8 @@ export interface ComentarioPublicacion {
     mensaje: string;
     editado: boolean;
 }
+
+export interface PaginaComentarios {
+    comentarios: ComentarioPublicacion[];
+    total: number;
+}

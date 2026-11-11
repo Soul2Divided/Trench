@@ -49,7 +49,7 @@
 
             @if (datos.textoConfirmar) {
                 <button class="button button--accent button--full" type="button" [disabled]="procesando()" (click)="confirmar()">
-                    {{ procesando() ? 'Eliminando…' : datos.textoConfirmar }}
+                    {{ procesando() ? (datos.textoProcesando || 'Eliminando…') : datos.textoConfirmar }}
                 </button>
             }
         </div>

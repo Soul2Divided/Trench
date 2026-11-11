@@ -9,10 +9,41 @@
             </time>
         </header>
 
-        <p>{{ comentario().mensaje }}</p>
+        @if (editando()) {
+            <form class="comentario__formulario" (ngSubmit)="guardar()">
+                <label class="form-label" [for]="'editar-comentario-' + comentario().id">Editar comentario</label>
 
-        @if (comentario().editado) {
-            <span class="comentario__estado">Editado</span>
+                <textarea
+                    class="form-control"
+                    [id]="'editar-comentario-' + comentario().id"
+                    [formControl]="mensaje"
+                    rows="3"
+                    [readOnly]="guardando()"
+                ></textarea>
+
+                @if (errorEdicion()) {
+                    <p class="form-error" role="alert">No pudimos guardar el comentario. Intentá nuevamente.</p>
+                }
+
+                <div class="comentario__acciones">
+                    <button class="button" type="button" [disabled]="guardando()" (click)="editando.set(false)">Cancelar</button>
+                    <button class="button button--accent" type="submit" [disabled]="guardando() || !mensaje.value.trim()">
+                        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+                    </button>
+                </div>
+            </form>
+        } @else {
+            <p>{{ comentario().mensaje }}</p>
+
+            <div class="comentario__acciones">
+                @if (comentario().editado) {
+                    <span class="comentario__estado">Editado</span>
+                }
+
+                @if (propio()) {
+                    <button class="comentario__editar" type="button" (click)="editar()">Editar</button>
+                }
+            </div>
         }
     </div>
 </article>

@@ -1,19 +1,50 @@
-<section class="comentarios-perfil" [attr.aria-labelledby]="'comentarios-' + publicacionId()" [attr.aria-busy]="cargando()">
+<section class="comentarios-publicacion" [attr.aria-labelledby]="'comentarios-' + publicacionId()">
     <h3 [id]="'comentarios-' + publicacionId()">Comentarios</h3>
 
-    @if (cargando()) {
-        <div class="carga-en-linea" role="status">
-            <span class="spinner" aria-hidden="true"></span>
-            <p>Cargando comentarios…</p>
-        </div>
-    } @else if (errorCarga()) {
-        <p role="alert">No pudimos cargar los comentarios.</p>
-        <button class="button" type="button" (click)="cargar(publicacionId())">Reintentar</button>
-    } @else {
+    <div class="comentarios-publicacion__listado" [attr.aria-busy]="cargando()">
         @for (comentario of comentarios(); track comentario.id) {
-            <app-comentario [comentario]="comentario" />
-        } @empty {
+            <app-comentario
+                [comentario]="comentario"
+                [publicacionId]="publicacionId()"
+                (actualizado)="actualizarComentario($event)"
+            />
+        }
+
+        @if (cargando()) {
+            <div class="carga-en-linea" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                <p>Cargando comentarios…</p>
+            </div>
+        } @else if (errorCarga()) {
+            <p role="alert">No pudimos cargar los comentarios.</p>
+            <button class="button" type="button" (click)="cargarMas()">Reintentar</button>
+        } @else if (!comentarios().length) {
             <p>Esta publicación todavía no tiene comentarios.</p>
         }
-    }
+
+        @if (hayMas() && !cargando() && !errorCarga()) {
+            <button class="button" type="button" [disabled]="enviando()" (click)="cargarMas()">Cargar más</button>
+        }
+    </div>
+
+    <form class="comentarios-publicacion__formulario" (ngSubmit)="comentar()">
+        <label class="form-label" [for]="'nuevo-comentario-' + publicacionId()">Escribí un comentario</label>
+
+        <textarea
+            class="form-control"
+            [id]="'nuevo-comentario-' + publicacionId()"
+            [formControl]="mensaje"
+            placeholder="Sumate a la conversación…"
+            rows="2"
+            [readOnly]="enviando()"
+        ></textarea>
+
+        @if (errorEnvio()) {
+            <p class="form-error" role="alert">No pudimos publicar tu comentario. Intentá nuevamente.</p>
+        }
+
+        <button class="button button--accent" type="submit" [disabled]="enviando() || cargando() || !mensaje.value.trim()">
+            {{ enviando() ? 'Publicando…' : 'Comentar' }}
+        </button>
+    </form>
 </section>

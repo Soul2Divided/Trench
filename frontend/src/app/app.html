@@ -1,1 +1,14 @@
-<router-outlet></router-outlet>
+@if (autenticacion.validandoSesion()) {
+    <app-loader titulo="Validando tu sesión" mensaje="Estamos comprobando tu acceso a Trench." />
+} @else {
+    <router-outlet />
+
+    @if (autenticacion.mostrarAviso()) {
+        <app-modal
+            [mensaje]="errorRenovacion() ? mensajeError : mensajeSesion"
+            [procesando]="renovando()"
+            (cerrado)="autenticacion.cerrarSesion()"
+            (confirmado)="extenderSesion()"
+        />
+    }
+}

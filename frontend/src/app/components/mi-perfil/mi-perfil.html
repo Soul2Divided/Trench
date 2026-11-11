@@ -53,9 +53,11 @@
                         </div>
                     } @else {
                         @for (publicacion of publicaciones(); track publicacion.id) {
-                            <app-tarjeta-publicacion [publicacion]="publicacion" (eliminada)="cargarPublicaciones()">
-                                <app-comentarios-publicacion [publicacionId]="publicacion.id" />
-                            </app-tarjeta-publicacion>
+                            <app-tarjeta-publicacion
+                                [publicacion]="publicacion"
+                                (eliminada)="cargarPublicaciones()"
+                                (comentariosActualizados)="actualizarComentarios($event)"
+                            />
                         } @empty {
                             <div class="estado-listado card">
                                 <p>Todavía no compartiste publicaciones.</p>

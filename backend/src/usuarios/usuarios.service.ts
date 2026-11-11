@@ -44,7 +44,7 @@ export class UsuariosService {
             fechaNacimiento: usuario.fechaNacimiento,
             descripcion: usuario.descripcion,
             imagenPerfilUrl: usuario.imagenPerfilUrl,
-            perfil: usuario.perfil,
+            rol: usuario.rol,
         };
     }
 
@@ -124,7 +124,7 @@ export class UsuariosService {
             fechaNacimiento: usuario.fechaNacimiento,
             descripcion: usuario.descripcion,
             imagenPerfilUrl: usuario.imagenPerfilUrl,
-            perfil: usuario.perfil,
+            rol: usuario.rol,
         };
     }
 
@@ -155,7 +155,7 @@ export class UsuariosService {
             descripcion: datos.descripcion,
             imagenPerfilUrl: datos.imagenPerfilUrl,
             imagenPerfilPublicId: datos.imagenPerfilPublicId,
-            perfil: 'usuario',
+            rol: 'usuario',
         });
 
         try {

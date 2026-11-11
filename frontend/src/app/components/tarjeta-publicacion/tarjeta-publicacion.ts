@@ -8,10 +8,11 @@ import { EstadoMeGusta, Publicacion } from '../../models/publicacion';
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { PublicacionesService } from '../../services/publicaciones.service';
 import { MensajeModal, Modal } from '../modal/modal';
+import { ModalPublicacion } from '../modal-publicacion/modal-publicacion';
 
 @Component({
     selector: 'app-tarjeta-publicacion',
-    imports: [DatePipe, Modal],
+    imports: [DatePipe, Modal, ModalPublicacion],
     templateUrl: './tarjeta-publicacion.html',
     styleUrl: './tarjeta-publicacion.scss',
 })
@@ -19,6 +20,7 @@ export class TarjetaPublicacion {
     readonly publicacion = input.required<Publicacion>();
     readonly eliminada = output<string>();
     readonly meGustaActualizado = output<EstadoMeGusta & { id: string }>();
+    readonly comentariosActualizados = output<{ id: string; comentarios: number }>();
 
     private readonly autenticacion = inject(AutenticacionService);
     private readonly publicacionesService = inject(PublicacionesService);
@@ -33,6 +35,11 @@ export class TarjetaPublicacion {
     protected readonly celebrandoMeGusta = signal(false);
     protected readonly errorMeGusta = signal<string | null>(null);
     protected readonly mensajeModal = signal<MensajeModal | null>(null);
+    protected readonly mostrarDetalle = signal(false);
+
+    protected actualizarComentarios(comentarios: number): void {
+        this.comentariosActualizados.emit({ id: this.publicacion().id, comentarios });
+    }
 
     protected cambiarMeGusta(): void {
         if (this.propia() || this.actualizandoMeGusta() || this.eliminando()) {

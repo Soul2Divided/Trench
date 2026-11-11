@@ -19,12 +19,18 @@
         }
     </header>
 
-    <h2 [id]="'titulo-publicacion-' + publicacion().id">{{ publicacion().titulo }}</h2>
+    <h2 [id]="'titulo-publicacion-' + publicacion().id">
+        <button class="publicacion__abrir" type="button" (click)="mostrarDetalle.set(true)">
+            {{ publicacion().titulo }}
+        </button>
+    </h2>
 
     <p class="publicacion__mensaje">{{ publicacion().mensaje }}</p>
 
     @if (publicacion().imagenUrl) {
-        <img class="publicacion__imagen" [src]="publicacion().imagenUrl" [alt]="'Imagen de ' + publicacion().titulo" loading="lazy">
+        <button class="publicacion__ver-imagen" type="button" [attr.aria-label]="'Abrir publicación: ' + publicacion().titulo" (click)="mostrarDetalle.set(true)">
+            <img class="publicacion__imagen" [src]="publicacion().imagenUrl" [alt]="'Imagen de ' + publicacion().titulo" loading="lazy">
+        </button>
     }
 
     <footer class="publicacion__acciones">
@@ -68,7 +74,7 @@
             </button>
         }
 
-        <button class="button" type="button">
+        <button class="button" type="button" (click)="mostrarDetalle.set(true)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
                 <path d="M20 4H4v13h4v4l5-4h7Z" />
             </svg>
@@ -83,6 +89,14 @@
 
     <ng-content />
 </article>
+
+@if (mostrarDetalle()) {
+    <app-modal-publicacion
+        [publicacion]="publicacion()"
+        (cerrado)="mostrarDetalle.set(false)"
+        (comentariosActualizados)="actualizarComentarios($event)"
+    />
+}
 
 @if (mensajeModal(); as mensaje) {
     <app-modal

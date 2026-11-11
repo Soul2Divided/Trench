@@ -129,6 +129,12 @@ export class Publicaciones implements OnInit, AfterViewInit {
         }));
     }
 
+    protected actualizarComentarios(estado: { id: string; comentarios: number }): void {
+        this.publicaciones.update(actuales => actuales.map(publicacion => {
+            return publicacion.id === estado.id ? { ...publicacion, comentarios: estado.comentarios } : publicacion;
+        }));
+    }
+
     protected quitarPublicacion(id: string): void {
         if (!this.publicaciones().some(publicacion => publicacion.id === id)) {
             return;

@@ -1,8 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { map, Observable, throwError } from 'rxjs';
 
-import { ComentarioPublicacion, ConsultaPublicaciones, EstadoMeGusta, PaginaPublicaciones, Publicacion } from '../models/publicacion';
+import { ComentarioPublicacion, ConsultaPublicaciones, EstadoMeGusta, PaginaComentarios, PaginaPublicaciones, Publicacion } from '../models/publicacion';
 import { AutenticacionService } from './autenticacion.service';
 
 import { environment } from '../../environments/environment';
@@ -75,7 +75,23 @@ export class PublicacionesService {
         return this.http.delete<EstadoMeGusta>(url, { params });
     }
 
-    obtenerComentarios(id: string): Observable<ComentarioPublicacion[]> {
-        return this.http.get<ComentarioPublicacion[]>(`${this.url}/${encodeURIComponent(id)}/comentarios`);
+    obtenerComentarios(id: string, offset: number, limit: number): Observable<PaginaComentarios> {
+        const params = new HttpParams().set('offset', offset).set('limit', limit);
+
+        return this.http.get<PaginaComentarios | ComentarioPublicacion[]>(`${this.url}/${encodeURIComponent(id)}/comentarios`, { params })
+            .pipe(map(respuesta => Array.isArray(respuesta)
+                ? { comentarios: respuesta.slice(offset, offset + limit), total: respuesta.length }
+                : respuesta));
+    }
+
+    crearComentario(id: string, mensaje: string): Observable<ComentarioPublicacion> {
+        return this.http.post<ComentarioPublicacion>(`${this.url}/${encodeURIComponent(id)}/comentarios`, { mensaje });
+    }
+
+    editarComentario(id: string, comentarioId: string, mensaje: string): Observable<ComentarioPublicacion> {
+        return this.http.put<ComentarioPublicacion>(
+            `${this.url}/${encodeURIComponent(id)}/comentarios/${encodeURIComponent(comentarioId)}`,
+            { mensaje },
+        );
     }
 }

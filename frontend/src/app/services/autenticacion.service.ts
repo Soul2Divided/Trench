@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment.development';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, finalize, Observable, of, shareReplay, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface UsuarioAutenticado {
     id: string;
@@ -12,68 +13,104 @@ export interface UsuarioAutenticado {
     fechaNacimiento: string;
     descripcion: string;
     imagenPerfilUrl: string;
-    perfil: 'usuario' | 'administrador';
+    rol: 'usuario' | 'administrador';
+}
+
+export interface RespuestaAutenticacion extends UsuarioAutenticado {
+    avisoEn: number;
+    venceEn: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AutenticacionService {
     private readonly http = inject(HttpClient);
+    private readonly router = inject(Router);
+    private readonly destroyRef = inject(DestroyRef);
 
-    private readonly url = `${environment.apiUrl}/autenticacion`;
-    private readonly claveUsuario = 'trench.usuario';
-    private readonly usuario = signal<UsuarioAutenticado | null>(this.recuperarUsuario());
+    private readonly url = `${environment.apiUrl.replace(/\/$/, '')}/autenticacion`;
+    private readonly usuario = signal<UsuarioAutenticado | null>(null);
+    private readonly validando = signal(true);
+    private readonly aviso = signal(false);
+
+    private temporizadorAviso?: ReturnType<typeof setTimeout>;
+    private temporizadorVencimiento?: ReturnType<typeof setTimeout>;
+    private validacionInicial?: Observable<RespuestaAutenticacion | null>;
 
     readonly usuarioActual = this.usuario.asReadonly();
+    readonly validandoSesion = this.validando.asReadonly();
+    readonly mostrarAviso = this.aviso.asReadonly();
 
-    login(correo: string, contrasena: string): Observable<UsuarioAutenticado> {
-        return this.http.post<UsuarioAutenticado>(`${this.url}/login`, {
-            correo,
-            contrasena,
-        })
-            //cuando llega el usuario, se actualiza la señal y se guarda en sessionStorage antes de darselo al componente.
-            .pipe(tap(usuario => this.actualizarUsuario(usuario)));
+    constructor() {
+        this.destroyRef.onDestroy(() => this.limpiarTemporizadores());
+    }
+
+    validarSesion(): Observable<RespuestaAutenticacion | null> {
+        if (!this.validacionInicial) {
+            this.validacionInicial = this.autorizar().pipe(
+                catchError(() => {
+                    this.limpiarSesion();
+
+                    return of(null);
+                }),
+                finalize(() => this.validando.set(false)),
+                // Comparte una misma ejecución entre quienes se suscriben 
+                // y conserva el último resultado para entregárselo a quienes se suscriban después
+                shareReplay(1),
+            );
+        }
+
+        return this.validacionInicial;
+    }
+
+    login(correo: string, contrasena: string): Observable<RespuestaAutenticacion> {
+        return this.http.post<RespuestaAutenticacion>(`${this.url}/login`, { correo, contrasena })
+            .pipe(tap(respuesta => this.guardarSesion(respuesta)));
+    }
+
+    registrar(datos: FormData): Observable<RespuestaAutenticacion> {
+        return this.http.post<RespuestaAutenticacion>(`${this.url}/registro`, datos)
+            .pipe(tap(respuesta => this.guardarSesion(respuesta)));
+    }
+
+    autorizar(): Observable<RespuestaAutenticacion> {
+        return this.http.post<RespuestaAutenticacion>(`${this.url}/autorizar`, {})
+            .pipe(tap(respuesta => this.guardarSesion(respuesta)));
+    }
+
+    refrescar(): Observable<RespuestaAutenticacion> {
+        return this.http.post<RespuestaAutenticacion>(`${this.url}/refrescar`, {})
+            .pipe(tap(respuesta => this.guardarSesion(respuesta)));
     }
 
     actualizarUsuario(usuario: UsuarioAutenticado): void {
         this.usuario.set(usuario);
-
-        try {
-            sessionStorage.setItem(this.claveUsuario, JSON.stringify(usuario));
-        } catch {
-
-        }
     }
 
     cerrarSesion(): void {
+        this.limpiarSesion();
+        this.http.post(`${this.url}/logout`, {}).subscribe({ error: () => {} });
+    }
+
+    limpiarSesion(): void {
+        this.limpiarTemporizadores();
         this.usuario.set(null);
+        this.aviso.set(false);
 
-        try {
-            sessionStorage.removeItem(this.claveUsuario);
-        } catch {
-
-        }
+        void this.router.navigate(['/login']);
     }
 
-    registrar(datos: FormData): Observable<UsuarioAutenticado> {
-        return this.http.post<UsuarioAutenticado>(`${this.url}/registro`, datos);
+    private guardarSesion(respuesta: RespuestaAutenticacion): void {
+        const { avisoEn, venceEn, ...usuario } = respuesta;
+
+        this.limpiarTemporizadores();
+        this.actualizarUsuario(usuario);
+        this.aviso.set(false);
+        this.temporizadorAviso = setTimeout(() => this.aviso.set(true), Math.max(0, avisoEn - Date.now()));
+        this.temporizadorVencimiento = setTimeout(() => this.cerrarSesion(), Math.max(0, venceEn - Date.now()));
     }
 
-    private recuperarUsuario(): UsuarioAutenticado | null {
-        try {
-            const datos = sessionStorage.getItem(this.claveUsuario);
-            const usuario = datos ? JSON.parse(datos) : null;
-
-            if (usuario && typeof usuario.id === 'string' && typeof usuario.nombre === 'string'
-                && typeof usuario.apellido === 'string' && typeof usuario.correo === 'string'
-                && typeof usuario.nombreUsuario === 'string' && typeof usuario.fechaNacimiento === 'string'
-                && typeof usuario.descripcion === 'string' && typeof usuario.imagenPerfilUrl === 'string'
-                && ['usuario', 'administrador'].includes(usuario.perfil)) {
-                return usuario;
-            }
-        } catch {
-            
-        }
-
-        return null;
+    private limpiarTemporizadores(): void {
+        clearTimeout(this.temporizadorAviso);
+        clearTimeout(this.temporizadorVencimiento);
     }
 }

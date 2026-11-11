@@ -13,7 +13,7 @@
         "descripcion": "Escuchando discos completos y buscando canciones para cada momento.",
         "imagenPerfilUrl": "/images/publicacion-musica.svg",
         "imagenPerfilPublicId": "mock/perfiles/sofia",
-        "perfil": "usuario",
+        "rol": "usuario",
         "contrasenaHash": "$scrypt$ln=17,r=8,p=1$JK4Xpu3WcHOVNwaCG8L9XA$WAnu/LGmQlEMribpp+/ZB510dz2kwrqv29Yixjubqks"
     },
     {
@@ -30,7 +30,7 @@
         "descripcion": "Fan de los recitales, las guitarras y las playlists para viajar.",
         "imagenPerfilUrl": "/images/publicacion-musica.svg",
         "imagenPerfilPublicId": "mock/perfiles/lucas",
-        "perfil": "usuario",
+        "rol": "usuario",
         "contrasenaHash": "$scrypt$ln=17,r=8,p=1$ef09R6kFA9S7Zaa8MQleWg$s8YV2fKaEzLFVoyxaKeGFdU2YrTTNX7nxbtoMlEaZyk"
     },
     {
@@ -47,7 +47,7 @@
         "descripcion": "Descubriendo bandas nuevas y compartiendo recomendaciones musicales.",
         "imagenPerfilUrl": "/images/publicacion-musica.svg",
         "imagenPerfilPublicId": "mock/perfiles/martina",
-        "perfil": "administrador",
+        "rol": "administrador",
         "contrasenaHash": "$scrypt$ln=17,r=8,p=1$bVVEQ3sLGmKkj3sGiHmYeA$P3cQQnG/Z9sVfy0PlSHCYpiA+yOwGJzDs7TYl7dvAS0"
     }
 ]
