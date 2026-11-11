@@ -52,7 +52,7 @@ export class MiPerfil implements OnInit {
         this.cargandoUsuario.set(true);
         this.errorUsuario.set(false);
 
-        this.peticionUsuario = this.usuariosService.obtenerPorId(id)
+        this.peticionUsuario = this.usuariosService.obtenerPerfil()
             .pipe(
                 // takeUntilDestroyed cancela la suscripción si se destruye el componente, por ejemplo al navegar a otra pantalla
                 takeUntilDestroyed(this.destroyRef),
@@ -92,7 +92,7 @@ export class MiPerfil implements OnInit {
         this.totalPublicaciones.set(null);
 
         this.peticionPublicaciones = this.publicacionesService.listar({
-            usuarioId,
+            autorId: usuarioId,
             offset: 0,
             limit: 3,
             orden: 'fecha',

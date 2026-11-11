@@ -29,7 +29,7 @@ export interface ConsultaPublicaciones {
     offset: number;
     limit: number;
     orden: OrdenPublicaciones;
-    usuarioId?: string;
+    autorId?: string;
 }
 
 export interface PaginaPublicaciones {

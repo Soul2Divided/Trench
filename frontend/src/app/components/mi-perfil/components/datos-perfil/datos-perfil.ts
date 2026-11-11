@@ -132,7 +132,7 @@ export class DatosPerfil {
 
         this.guardando.set(true);
 
-        this.usuariosService.actualizarPerfil(this.usuario().id, formulario)
+        this.usuariosService.actualizarPerfil(formulario)
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => this.guardando.set(false)),

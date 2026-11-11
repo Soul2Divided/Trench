@@ -48,15 +48,8 @@
     font-size: 0.6875rem;
 }
 
-.comentario__formulario {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-
-    textarea {
-        resize: vertical;
-    }
+.comentario--editando .comentario__contenido {
+    background-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-white));
 }
 
 .comentario__acciones {
@@ -66,22 +59,34 @@
     gap: 0.5rem;
     margin-top: 0.5rem;
 
-    .button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-    }
 }
 
-.comentario__editar {
+.comentario__botones {
+    display: flex;
+    gap: 0.5rem;
     margin-left: auto;
-    padding: 0.25rem;
-    border: 0;
-    background: transparent;
+}
+
+.comentario__boton {
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: var(--border-default);
+    border-radius: 50%;
+    background-color: var(--color-white);
     color: var(--color-ink);
-    font: inherit;
-    font-size: 0.75rem;
-    text-decoration: underline;
     cursor: pointer;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    svg {
+        width: 1rem;
+        height: 1rem;
+    }
 }
 
 .comentario__estado {

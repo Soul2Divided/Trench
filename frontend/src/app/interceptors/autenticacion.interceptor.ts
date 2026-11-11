@@ -15,7 +15,7 @@ export const autenticacionInterceptor: HttpInterceptorFn = (solicitud, siguiente
     const autenticacion = inject(AutenticacionService);
     const esIngreso = ['/autenticacion/login', '/autenticacion/registro', '/autenticacion/logout']
         .some(ruta => solicitud.url === `${apiUrl}${ruta}`);
-    const peticion = solicitud.clone({ withCredentials: true });
+    const peticion = solicitud.clone({ withCredentials: true }); // para que el navegador envíe la cookie
 
     return siguiente(peticion).pipe(
         catchError((error: unknown) => {

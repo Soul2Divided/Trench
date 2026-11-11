@@ -59,7 +59,13 @@
     }
 
     .button {
-        align-self: flex-end;
         font-size: 0.75rem;
     }
+}
+
+.comentarios-publicacion__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
 }

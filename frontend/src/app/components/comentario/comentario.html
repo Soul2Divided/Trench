@@ -1,4 +1,4 @@
-<article class="comentario">
+<article class="comentario" [class.comentario--editando]="enEdicion()">
     <img class="avatar comentario__avatar" [src]="comentario().autor.imagenPerfilUrl" alt="" loading="lazy">
 
     <div class="comentario__contenido">
@@ -9,41 +9,28 @@
             </time>
         </header>
 
-        @if (editando()) {
-            <form class="comentario__formulario" (ngSubmit)="guardar()">
-                <label class="form-label" [for]="'editar-comentario-' + comentario().id">Editar comentario</label>
+        <p>{{ comentario().mensaje }}</p>
 
-                <textarea
-                    class="form-control"
-                    [id]="'editar-comentario-' + comentario().id"
-                    [formControl]="mensaje"
-                    rows="3"
-                    [readOnly]="guardando()"
-                ></textarea>
+        <div class="comentario__acciones">
+            @if (comentario().editado) {
+                <span class="comentario__estado">Editado</span>
+            }
 
-                @if (errorEdicion()) {
-                    <p class="form-error" role="alert">No pudimos guardar el comentario. Intentá nuevamente.</p>
-                }
+            @if (propio()) {
+                <div class="comentario__botones">
+                    <button class="comentario__boton" type="button" aria-label="Editar comentario" title="Editar comentario" [disabled]="bloqueado()" (click)="editar.emit(comentario())">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m16 3 5 5-12 12-6 1 1-6ZM13 6l5 5" />
+                        </svg>
+                    </button>
 
-                <div class="comentario__acciones">
-                    <button class="button" type="button" [disabled]="guardando()" (click)="editando.set(false)">Cancelar</button>
-                    <button class="button button--accent" type="submit" [disabled]="guardando() || !mensaje.value.trim()">
-                        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+                    <button class="comentario__boton" type="button" aria-label="Eliminar comentario" title="Eliminar comentario" [disabled]="bloqueado()" (click)="eliminar.emit(comentario())">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
+                        </svg>
                     </button>
                 </div>
-            </form>
-        } @else {
-            <p>{{ comentario().mensaje }}</p>
-
-            <div class="comentario__acciones">
-                @if (comentario().editado) {
-                    <span class="comentario__estado">Editado</span>
-                }
-
-                @if (propio()) {
-                    <button class="comentario__editar" type="button" (click)="editar()">Editar</button>
-                }
-            </div>
-        }
+            }
+        </div>
     </div>
 </article>
