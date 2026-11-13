@@ -15,9 +15,13 @@ import {
 } from '../../../../validators/auth.validators';
 import { MensajeModal, Modal } from '../../../modal/modal';
 
+import { ContadorCaracteresDirective } from '../../../../directivas/contador-caracteres.directive';
+import { ImagenRespaldoDirective } from '../../../../directivas/imagen-respaldo.directive';
+import { ResumirTextoPipe } from '../../../../pipes/resumir-texto.pipe';
+
 @Component({
     selector: 'app-datos-perfil',
-    imports: [DatePipe, ReactiveFormsModule, Modal],
+    imports: [ContadorCaracteresDirective, ImagenRespaldoDirective, ResumirTextoPipe, DatePipe, ReactiveFormsModule, Modal],
     templateUrl: './datos-perfil.html',
     styleUrl: './datos-perfil.scss',
 })
@@ -31,6 +35,7 @@ export class DatosPerfil {
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly destroyRef = inject(DestroyRef);
 
+    protected readonly descripcionCompleta = signal(false);
     protected readonly editando = signal(false);
     protected readonly guardando = signal(false);
     protected readonly guardado = signal(false);
@@ -42,7 +47,7 @@ export class DatosPerfil {
         apellido: ['', textoObligatorio],
         nombreUsuario: ['', textoObligatorio],
         fechaNacimiento: ['', [Validators.required, fechaNacimientoValida]],
-        descripcion: ['', [textoObligatorio, Validators.maxLength(250)]],
+        descripcion: ['', [textoObligatorio, Validators.maxLength(100)]],
         imagen: this.formularios.control<File | null>(null, imagenPerfilValida),
     });
 

@@ -1,11 +1,14 @@
 <article class="comentario" [class.comentario--editando]="enEdicion()">
-    <img class="avatar comentario__avatar" [src]="comentario().autor.imagenPerfilUrl" alt="" loading="lazy">
+    <img appImagenRespaldo class="avatar comentario__avatar" [src]="comentario().autor.imagenPerfilUrl" alt="" loading="lazy">
 
     <div class="comentario__contenido">
         <header class="comentario__cabecera">
             <span class="comentario__nombre">{{ comentario().autor.nombre }} {{ comentario().autor.apellido }}</span>
-            <time class="comentario__fecha" [attr.datetime]="comentario().fechaCreacion">
-                {{ comentario().fechaCreacion | date:'d MMM y, HH:mm' }}
+            <time class="comentario__fecha"
+                [attr.datetime]="comentario().fechaCreacion"
+                [title]="comentario().fechaCreacion | date:'d MMM y, HH:mm'"
+            >
+                {{ comentario().fechaCreacion | tiempoTranscurrido }}
             </time>
         </header>
 

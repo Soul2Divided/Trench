@@ -1,0 +1,134 @@
+<div class="pagina-social fondo-escamas fondo-escamas--laterales">
+    <app-navbar />
+
+    <div class="distribucion-social page-container">
+        <app-panel-usuario />
+
+        <main class="usuarios" aria-labelledby="titulo-usuarios">
+            <header class="encabezado-seccion">
+                <div>
+                    <h1 id="titulo-usuarios">Usuarios</h1>
+                    <p>Administrá las cuentas y su acceso a Trench.</p>
+                </div>
+
+                <span>{{ usuarios().length }} cuentas</span>
+            </header>
+
+            <div class="form-field">
+                <label class="form-label" for="buscar-usuarios">Buscar usuarios</label>
+                <input
+                    class="form-control"
+                    id="buscar-usuarios"
+                    type="search"
+                    placeholder="Nombre, apellido, usuario o correo"
+                    [value]="busqueda()"
+                    (input)="buscar($event)"
+                >
+            </div>
+
+            @if (confirmacion(); as mensaje) {
+                <p class="usuarios__confirmacion" role="status">{{ mensaje }}</p>
+            }
+
+            @if (cargando()) {
+                <div class="carga-en-linea" role="status">
+                    <span class="spinner" aria-hidden="true"></span>
+                    <p>Cargando usuarios…</p>
+                </div>
+            } @else if (errorCarga(); as error) {
+                <div class="estado-listado card">
+                    <p role="alert">{{ error }}</p>
+                    <button class="button" type="button" (click)="cargarUsuarios()">Reintentar</button>
+                </div>
+            } @else if (!usuariosFiltrados().length) {
+                <div class="estado-listado card" role="status">
+                    <p>{{ busqueda().trim() ? 'No se encontraron usuarios con esa búsqueda.' : 'Todavía no hay usuarios para mostrar.' }}</p>
+                </div>
+            } @else {
+                <div class="usuarios__tabla-contenedor" role="region" aria-label="Listado de usuarios" tabindex="0">
+                    <table class="usuarios__tabla" aria-label="Usuarios registrados">
+                        <thead>
+                            <tr>
+                                <th scope="col">Usuario</th>
+                                <th scope="col">Correo</th>
+                                <th scope="col">Rol</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Acción</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @for (usuario of usuariosVisibles(); track usuario.id) {
+                                <tr [class.usuarios__fila--deshabilitada]="!usuario.habilitado">
+                                    <th scope="row">
+                                        <div class="usuarios__identidad">
+                                            <img class="avatar" appImagenRespaldo [src]="usuario.imagenPerfilUrl" alt="" loading="lazy">
+
+                                            <div>
+                                                <span class="usuarios__nombre">{{ usuario.nombre }} {{ usuario.apellido }}</span>
+                                                <span class="usuarios__alias">&#64;{{ usuario.nombreUsuario }}</span>
+                                            </div>
+                                        </div>
+                                    </th>
+
+                                    <td class="usuarios__correo">{{ usuario.correo }}</td>
+                                    <td>{{ usuario.rol === 'administrador' ? 'Administrador' : 'Usuario' }}</td>
+                                    <td>
+                                        <span class="usuarios__estado" [class.usuarios__estado--habilitado]="usuario.habilitado">
+                                            {{ usuario.habilitado | estadoUsuario }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            class="button usuarios__accion"
+                                            type="button"
+                                            [disabled]="actualizando() || usuario.id === usuarioActual()?.id"
+                                            [attr.aria-label]="(usuario.habilitado ? 'Deshabilitar a ' : 'Habilitar a ') + usuario.nombreUsuario"
+                                            [title]="usuario.id === usuarioActual()?.id ? 'No podés deshabilitar tu propia cuenta.' : ''"
+                                            (click)="solicitarCambio(usuario)"
+                                        >
+                                            {{ usuario.id === usuarioActual()?.id ? 'Tu cuenta' : (usuario.habilitado ? 'Deshabilitar' : 'Habilitar') }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav class="usuarios__paginacion" aria-label="Páginas del listado de usuarios">
+                    <button class="button" type="button" [disabled]="pagina() === 1" (click)="cambiarPagina(-1)">Anterior</button>
+                    <span aria-live="polite">Página {{ pagina() }} de {{ totalPaginas() }} · {{ usuariosFiltrados().length }} resultados</span>
+                    <button class="button" type="button" [disabled]="pagina() === totalPaginas()" (click)="cambiarPagina(1)">Siguiente</button>
+                </nav>
+            }
+        </main>
+    </div>
+
+    <button
+        class="button button--accent usuarios__crear"
+        type="button"
+        aria-haspopup="dialog"
+        [disabled]="actualizando() || cargando()"
+        (click)="mostrarCreacion.set(true)"
+    >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+        </svg>
+
+        Crear usuario
+    </button>
+</div>
+
+@if (mostrarCreacion()) {
+    <app-crear-usuario (cerrado)="mostrarCreacion.set(false)" (creado)="completarCreacion()" />
+}
+
+@if (mensajeModal(); as mensaje) {
+    <app-modal
+        [mensaje]="mensaje"
+        [procesando]="actualizando()"
+        (cerrado)="cerrarMensaje()"
+        (confirmado)="cambiarHabilitacion()"
+    />
+}

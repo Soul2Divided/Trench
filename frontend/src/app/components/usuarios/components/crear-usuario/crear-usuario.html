@@ -1,0 +1,34 @@
+<dialog
+    #dialogo
+    class="crear-usuario"
+    aria-labelledby="titulo-crear-usuario"
+    (cancel)="cerrar($event)"
+    (click)="cerrarDesdeFondo($event)"
+>
+    <header class="crear-usuario__cabecera">
+        <div>
+            <h2 id="titulo-crear-usuario">Crear usuario</h2>
+            <p>Completá los datos y elegí el rol de la nueva cuenta.</p>
+        </div>
+
+        <button
+            class="button"
+            type="button"
+            aria-label="Cerrar formulario de creación"
+            [disabled]="enviando()"
+            (click)="cerrar()"
+        >
+            Cerrar
+        </button>
+    </header>
+
+    @if (enviando()) {
+        <p class="crear-usuario__aviso" role="status">Creando usuario. Por favor, esperá…</p>
+    }
+
+    <app-registro
+        [modoAdministrador]="true"
+        (cargando)="enviando.set($event)"
+        (registrado)="completarCreacion()"
+    />
+</dialog>

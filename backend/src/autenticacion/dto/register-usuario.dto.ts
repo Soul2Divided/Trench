@@ -4,6 +4,7 @@ import {
     IsNotEmpty,
     IsString,
     Matches,
+    MaxLength,
     MinLength,
 } from 'class-validator';
 
@@ -32,12 +33,14 @@ export class RegisterUsuarioDto {
 
     @IsString({ message: 'La contraseña debe ser un texto.' })
     @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+    @MaxLength(20, { message: 'La contraseña no puede superar los 20 caracteres.' })
     @Matches(/[A-Z]/, { message: 'La contraseña debe incluir al menos una mayúscula.' })
     @Matches(/[0-9]/, { message: 'La contraseña debe incluir al menos un número.' })
     contrasena: string;
 
     @IsString({ message: 'La repetición de contraseña debe ser un texto.' })
     @IsNotEmpty({ message: 'Debe repetir la contraseña.' })
+    @MaxLength(20, { message: 'La repetición de contraseña no puede superar los 20 caracteres.' })
     repetirContrasena: string;
 
     @IsDateString(
@@ -48,5 +51,6 @@ export class RegisterUsuarioDto {
 
     @IsString({ message: 'La descripción debe ser un texto.' })
     @Matches(/\S/, { message: 'La descripción no puede estar vacía ni contener solo espacios.' })
+    @MaxLength(100, { message: 'La descripción no puede superar los 100 caracteres.' })
     descripcion: string;
 }

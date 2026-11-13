@@ -4,9 +4,12 @@ import { AfterViewInit, Component, ElementRef, input, output, viewChild } from '
 import { Publicacion } from '../../models/publicacion';
 import { ComentariosPublicacion } from '../comentarios-publicacion/comentarios-publicacion';
 
+import { ImagenRespaldoDirective } from '../../directivas/imagen-respaldo.directive';
+import { TiempoTranscurridoPipe } from '../../pipes/tiempo-transcurrido.pipe';
+
 @Component({
     selector: 'app-modal-publicacion',
-    imports: [DatePipe, ComentariosPublicacion],
+    imports: [ImagenRespaldoDirective, TiempoTranscurridoPipe, DatePipe, ComentariosPublicacion],
     templateUrl: './modal-publicacion.html',
     styleUrl: './modal-publicacion.scss',
 })

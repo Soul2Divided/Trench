@@ -1,7 +1,7 @@
 <section class="crear-publicacion card" aria-labelledby="titulo-crear">
     <div class="crear-publicacion__cabecera">
         @if (usuario(); as datos) {
-            <img class="avatar" [src]="datos.imagenPerfilUrl" alt="">
+            <img appImagenRespaldo class="avatar" [src]="datos.imagenPerfilUrl" alt="">
         }
 
         <div>
@@ -40,9 +40,11 @@
                     id="mensaje-nuevo"
                     rows="3"
                     formControlName="mensaje"
+                    appContadorCaracteres
+                    #contadorMensajeNuevo="contadorCaracteres"
                     placeholder="Una canción, un disco, algo que quieras compartir..."
                     [attr.aria-invalid]="errorMensaje ? 'true' : null"
-                    [attr.aria-describedby]="errorMensaje ? 'mensaje-nuevo-error' : null"
+                    [attr.aria-describedby]="(errorMensaje ? 'mensaje-nuevo-error' : '') + ' ' + contadorMensajeNuevo.contadorId"
                 ></textarea>
 
                 @if (errorMensaje) {

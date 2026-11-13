@@ -11,8 +11,11 @@ import { MensajeModal, Modal } from '../modal/modal';
 import { Registro } from '../registro/registro';
 import { Loader } from '../loader/loader';
 
+import { ContadorCaracteresDirective } from '../../directivas/contador-caracteres.directive';
+import { SeleccionarAlEnfocarDirective } from '../../directivas/seleccionar-al-enfocar.directive';
+
 @Component({
-    imports: [ReactiveFormsModule, Registro, Modal, Loader],
+    imports: [ContadorCaracteresDirective, SeleccionarAlEnfocarDirective, ReactiveFormsModule, Registro, Modal, Loader],
     selector: 'app-login',
     styleUrl: './login.scss',
     templateUrl: './login.html',
@@ -24,6 +27,7 @@ export class Login implements OnInit {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
 
+    protected readonly passwordRechazada = signal(false);
     protected readonly enviando = signal(false);
     protected readonly registrando = signal(false);
     protected readonly intentandoEnviar = signal(false);
@@ -32,7 +36,7 @@ export class Login implements OnInit {
 
     protected readonly loginForm = this.formularios.group({
         email: ['', [Validators.required, Validators.email, Validators.pattern(patronCorreo)]],
-        password: ['', [Validators.required, passwordValida]],
+        password: ['', [Validators.required, passwordValida, Validators.maxLength(20)]],
     });
 
     ngOnInit(): void {
@@ -54,6 +58,7 @@ export class Login implements OnInit {
 
         this.modo.set(modo);
         this.loginForm.reset();
+        this.passwordRechazada.set(false);
         this.intentandoEnviar.set(false);
     }
 
@@ -84,6 +89,7 @@ export class Login implements OnInit {
 
         const datos = this.loginForm.getRawValue();
 
+        this.passwordRechazada.set(false);
         this.enviando.set(true);
         this.mensajeModal.set(null);
 
@@ -109,6 +115,7 @@ export class Login implements OnInit {
             if (error.status === 0) {
                 mensaje = 'No pudimos conectar con el servidor. Revisá que el backend esté iniciado y que tengas conexión.';
             } else if (error.status === 401) {
+                this.passwordRechazada.set(true);
                 mensaje = 'El correo o la contraseña son incorrectos.';
             } else if (error.status === 400) {
                 mensaje = 'Los datos enviados no son válidos. Revisá el correo y la contraseña.';

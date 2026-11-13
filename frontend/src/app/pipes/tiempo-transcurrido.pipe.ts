@@ -1,10 +1,15 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { inject, Pipe, PipeTransform } from '@angular/core';
+
+import { RelojService } from '../services/reloj.service';
 
 @Pipe({
     name: 'tiempoTranscurrido',
+    pure: false,
 })
 export class TiempoTranscurridoPipe implements PipeTransform {
-    transform(fecha: string | number | Date | null | undefined, ahora: number = Date.now()): string {
+    private readonly reloj = inject(RelojService);
+
+    transform(fecha: string | number | Date | null | undefined, ahora: number = this.reloj.ahora()): string {
         if (fecha === null || fecha === undefined || fecha === '') {
             return '';
         }
