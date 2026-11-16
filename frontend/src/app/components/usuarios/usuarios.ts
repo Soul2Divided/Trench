@@ -34,7 +34,7 @@ export class Usuarios implements OnInit {
     protected readonly usuarioSeleccionado = signal<UsuarioAdministrado | null>(null);
     protected readonly busqueda = signal('');
     protected readonly pagina = signal(1);
-    protected readonly cantidadPorPagina = 20;
+    protected readonly cantidadPorPagina = 5;
 
     protected readonly usuariosFiltrados = computed(() => {
         const texto = this.busqueda().trim().toLocaleLowerCase('es-AR');

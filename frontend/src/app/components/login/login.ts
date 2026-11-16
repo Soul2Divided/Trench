@@ -117,6 +117,8 @@ export class Login implements OnInit {
             } else if (error.status === 401) {
                 this.passwordRechazada.set(true);
                 mensaje = 'El correo o la contraseña son incorrectos.';
+            } else if (error.status === 403) {
+                mensaje = 'Tu cuenta fue deshabilitada. Contactá a un administrador para recuperar el acceso.';
             } else if (error.status === 400) {
                 mensaje = 'Los datos enviados no son válidos. Revisá el correo y la contraseña.';
             }

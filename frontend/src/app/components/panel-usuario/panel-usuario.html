@@ -60,14 +60,22 @@
         <div class="navegacion__separador"></div>
 
         @if (usuario()) {
-            <a class="navegacion__opcion" routerLink="/login" (click)="cerrarSesion()">
+            <button class="navegacion__opcion" type="button" (click)="solicitarCierreSesion()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
                     <path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" />
                 </svg>
 
                 Cerrar sesión
-            </a>
+            </button>
         }
     </nav>
 
 </aside>
+
+@if (confirmacionCierre(); as mensaje) {
+    <app-modal
+        [mensaje]="mensaje"
+        (cerrado)="confirmacionCierre.set(null)"
+        (confirmado)="confirmarCierreSesion()"
+    />
+}

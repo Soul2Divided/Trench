@@ -13,7 +13,7 @@
             </time>
         </div>
 
-        @if (propia()) {
+        @if (puedeEliminar()) {
             <button class="publicacion__eliminar" type="button" aria-label="Eliminar publicación" [disabled]="eliminando()" (click)="solicitarEliminacion()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
@@ -31,7 +31,9 @@
     <p class="publicacion__mensaje">{{ publicacion().mensaje | resumirTexto:30 }}</p>
 
     @if (publicacion().mensaje.length > 30) {
-        <button class="button" type="button" (click)="mostrarDetalle.set(true)">Leer publicación completa</button>
+        <button class="publicacion__leer-mas" type="button" (click)="mostrarDetalle.set(true)">
+            Leer publicación completa
+        </button>
     }
 
     @if (publicacion().imagenUrl) {
