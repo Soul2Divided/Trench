@@ -9,9 +9,12 @@ import { PublicacionesService } from '../../../../services/publicaciones.service
 import { errorFormulario, imagenPerfilValida, textoObligatorio } from '../../../../validators/auth.validators';
 import { MensajeModal, Modal } from '../../../modal/modal';
 
+import { ContadorCaracteresDirective } from '../../../../directivas/contador-caracteres.directive';
+import { ImagenRespaldoDirective } from '../../../../directivas/imagen-respaldo.directive';
+
 @Component({
     selector: 'app-crear-publicacion',
-    imports: [ReactiveFormsModule, Modal],
+    imports: [ContadorCaracteresDirective, ImagenRespaldoDirective, ReactiveFormsModule, Modal],
     templateUrl: './crear-publicacion.html',
     styleUrl: './crear-publicacion.scss',
 })

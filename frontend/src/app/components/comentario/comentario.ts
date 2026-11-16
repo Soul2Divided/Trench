@@ -4,9 +4,12 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { ComentarioPublicacion } from '../../models/publicacion';
 import { AutenticacionService } from '../../services/autenticacion.service';
 
+import { ImagenRespaldoDirective } from '../../directivas/imagen-respaldo.directive';
+import { TiempoTranscurridoPipe } from '../../pipes/tiempo-transcurrido.pipe';
+
 @Component({
     selector: 'app-comentario',
-    imports: [DatePipe],
+    imports: [ImagenRespaldoDirective, TiempoTranscurridoPipe, DatePipe],
     templateUrl: './comentario.html',
     styleUrl: './comentario.scss',
 })

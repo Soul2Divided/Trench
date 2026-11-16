@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { requiereSesion } from './guards/requiere-sesion.guard';
+import { requiereAdministrador } from './guards/requiere-administrador.guard';
 
 export const routes: Routes = [
     {
@@ -21,6 +22,11 @@ export const routes: Routes = [
         path: 'mi-perfil',
         canActivate: [requiereSesion],
         loadComponent: () => import('./components/mi-perfil/mi-perfil').then(m => m.MiPerfil),
+    },
+    {
+        path: 'dashboard/usuarios',
+        canActivate: [requiereAdministrador],
+        loadComponent: () => import('./components/usuarios/usuarios').then(m => m.Usuarios),
     },
     {
         path: '**',

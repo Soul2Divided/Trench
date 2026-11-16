@@ -1,0 +1,40 @@
+.crear-usuario {
+    width: min(42rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2rem);
+    padding: clamp(1.25rem, 4vw, 2rem);
+    border: var(--border-default);
+    border-radius: var(--radius-card);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-card);
+    overflow-y: auto;
+
+    &::backdrop {
+        background-color: rgb(17 22 24 / 60%);
+    }
+}
+
+.crear-usuario__cabecera {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    p {
+        margin: 0.75rem 0 0;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+}
+
+.crear-usuario__aviso {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+}

@@ -1,16 +1,19 @@
 <article class="publicacion card" [attr.aria-labelledby]="'titulo-publicacion-' + publicacion().id">
     <header class="publicacion__cabecera">
-        <img class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="" loading="lazy">
+        <img appImagenRespaldo class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="" loading="lazy">
 
         <div class="publicacion__autor">
             <span class="publicacion__nombre">{{ publicacion().autor.nombre }} {{ publicacion().autor.apellido }}</span>
             <span class="publicacion__usuario">&#64;{{ publicacion().autor.nombreUsuario }}</span>
-            <time class="publicacion__fecha" [attr.datetime]="publicacion().fechaCreacion">
-                {{ publicacion().fechaCreacion | date:'d MMM y, HH:mm' }}
+            <time class="publicacion__fecha"
+                [attr.datetime]="publicacion().fechaCreacion"
+                [title]="publicacion().fechaCreacion | date:'d MMM y, HH:mm'"
+            >
+                {{ publicacion().fechaCreacion | tiempoTranscurrido }}
             </time>
         </div>
 
-        @if (propia()) {
+        @if (puedeEliminar()) {
             <button class="publicacion__eliminar" type="button" aria-label="Eliminar publicación" [disabled]="eliminando()" (click)="solicitarEliminacion()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
@@ -25,7 +28,13 @@
         </button>
     </h2>
 
-    <p class="publicacion__mensaje">{{ publicacion().mensaje }}</p>
+    <p class="publicacion__mensaje">{{ publicacion().mensaje | resumirTexto:30 }}</p>
+
+    @if (publicacion().mensaje.length > 30) {
+        <button class="publicacion__leer-mas" type="button" (click)="mostrarDetalle.set(true)">
+            Leer publicación completa
+        </button>
+    }
 
     @if (publicacion().imagenUrl) {
         <button class="publicacion__ver-imagen" type="button" [attr.aria-label]="'Abrir publicación: ' + publicacion().titulo" (click)="mostrarDetalle.set(true)">

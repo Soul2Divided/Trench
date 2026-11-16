@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, inject, output, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, Observable } from 'rxjs';
 
-import { AutenticacionService } from '../../services/autenticacion.service';
+import { AutenticacionService, UsuarioAutenticado } from '../../services/autenticacion.service';
+import { UsuariosService } from '../../services/usuarios.service';
 import { MensajeModal, Modal } from '../modal/modal';
 import {
     contrasenasCoinciden,
@@ -16,19 +17,24 @@ import {
     textoObligatorio,
 } from '../../validators/auth.validators';
 
+import { ContadorCaracteresDirective } from '../../directivas/contador-caracteres.directive';
+import { SeleccionarAlEnfocarDirective } from '../../directivas/seleccionar-al-enfocar.directive';
+
 @Component({
     selector: 'app-registro',
-    imports: [ReactiveFormsModule, Modal],
+    imports: [ContadorCaracteresDirective, SeleccionarAlEnfocarDirective, ReactiveFormsModule, Modal],
     templateUrl: './registro.html',
     styleUrl: './registro.scss',
 })
 export class Registro {
+    readonly modoAdministrador = input(false);
     readonly registrado = output<string>();
     readonly cargando = output<boolean>();
 
     private readonly formularios = inject(NonNullableFormBuilder);
     private readonly elemento = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly autenticacion = inject(AutenticacionService);
+    private readonly usuariosService = inject(UsuariosService);
     private readonly destroyRef = inject(DestroyRef);
 
     protected readonly enviando = signal(false);
@@ -41,12 +47,12 @@ export class Registro {
         apellido: ['', textoObligatorio],
         email: ['', [Validators.required, Validators.email, Validators.pattern(patronCorreo)]],
         usuario: ['', textoObligatorio],
-        password: ['', [Validators.required, passwordValida]],
-        repetirPassword: ['', Validators.required],
+        password: ['', [Validators.required, passwordValida, Validators.maxLength(20)]],
+        repetirPassword: ['', [Validators.required, Validators.maxLength(20)]],
         fechaNacimiento: ['', [Validators.required, fechaNacimientoValida]],
-        descripcion: ['', [textoObligatorio, Validators.maxLength(250)]],
+        descripcion: ['', [textoObligatorio, Validators.maxLength(100)]],
         imagen: this.formularios.control<File | null>(null, [Validators.required, imagenPerfilValida]),
-        rol: this.formularios.control<'usuario'>('usuario'),
+        rol: this.formularios.control<'usuario' | 'administrador'>('usuario', Validators.required),
     }, { validators: contrasenasCoinciden });
 
     protected mensajeError(control: AbstractControl, obligatorio: string): string {
@@ -120,13 +126,21 @@ export class Registro {
         formulario.append('descripcion', datos.descripcion);
         formulario.append('imagen', datos.imagen);
 
+        if (this.modoAdministrador()) {
+            formulario.append('rol', datos.rol);
+        }
+
         this.enviando.set(true);
         this.mensajeModal.set(null);
         this.cargando.emit(true);
 
         let cuentaCreada = false;
 
-        this.autenticacion.registrar(formulario)
+        const peticion: Observable<UsuarioAutenticado> = this.modoAdministrador()
+            ? this.usuariosService.crear(formulario)
+            : this.autenticacion.registrar(formulario);
+
+        peticion
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
                 finalize(() => {

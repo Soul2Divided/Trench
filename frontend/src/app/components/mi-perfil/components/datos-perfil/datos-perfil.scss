@@ -44,6 +44,25 @@
     line-height: 1.8;
 }
 
+.datos-perfil__leer-mas {
+    margin-top: 0.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 0.25rem;
+    }
+}
+
 .datos-perfil__editar {
     font-size: 0.8125rem;
 

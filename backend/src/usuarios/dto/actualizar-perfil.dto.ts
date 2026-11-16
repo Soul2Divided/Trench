@@ -19,6 +19,6 @@ export class ActualizarPerfilDto {
 
     @IsString({ message: 'La descripción debe ser un texto.' })
     @Matches(/\S/, { message: 'La descripción no puede estar vacía ni contener solo espacios.' })
-    @MaxLength(250, { message: 'La descripción no puede superar los 250 caracteres.' })
+    @MaxLength(100, { message: 'La descripción no puede superar los 100 caracteres.' })
     descripcion: string;
 }

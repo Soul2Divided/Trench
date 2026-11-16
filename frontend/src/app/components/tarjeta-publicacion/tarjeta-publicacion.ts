@@ -10,9 +10,13 @@ import { PublicacionesService } from '../../services/publicaciones.service';
 import { MensajeModal, Modal } from '../modal/modal';
 import { ModalPublicacion } from '../modal-publicacion/modal-publicacion';
 
+import { ImagenRespaldoDirective } from '../../directivas/imagen-respaldo.directive';
+import { ResumirTextoPipe } from '../../pipes/resumir-texto.pipe';
+import { TiempoTranscurridoPipe } from '../../pipes/tiempo-transcurrido.pipe';
+
 @Component({
     selector: 'app-tarjeta-publicacion',
-    imports: [DatePipe, Modal, ModalPublicacion],
+    imports: [ImagenRespaldoDirective, ResumirTextoPipe, TiempoTranscurridoPipe, DatePipe, Modal, ModalPublicacion],
     templateUrl: './tarjeta-publicacion.html',
     styleUrl: './tarjeta-publicacion.scss',
 })
@@ -28,6 +32,10 @@ export class TarjetaPublicacion {
 
     protected readonly propia = computed(() => {
         return this.publicacion().autor.id === this.autenticacion.usuarioActual()?.id;
+    });
+
+    protected readonly puedeEliminar = computed(() => {
+        return this.propia() || this.autenticacion.usuarioActual()?.rol === 'administrador';
     });
 
     protected readonly eliminando = signal(false);
@@ -81,7 +89,7 @@ export class TarjetaPublicacion {
     }
 
     protected solicitarEliminacion(): void {
-        if (!this.propia() || this.eliminando()) {
+        if (!this.puedeEliminar() || this.eliminando()) {
             return;
         }
 
@@ -95,7 +103,7 @@ export class TarjetaPublicacion {
     }
 
     protected eliminar(): void {
-        if (!this.propia() || this.eliminando()) {
+        if (!this.puedeEliminar() || this.eliminando()) {
             return;
         }
 
@@ -118,7 +126,7 @@ export class TarjetaPublicacion {
                         tipo: 'error',
                         titulo: 'No se pudo eliminar la publicación',
                         mensaje: error instanceof HttpErrorResponse && error.status === 403
-                            ? 'Solo podés eliminar tus propias publicaciones.'
+                            ? 'Solo el autor o un administrador pueden eliminar esta publicación.'
                             : 'La publicación sigue en el listado. Intentá nuevamente.',
                     });
                 },

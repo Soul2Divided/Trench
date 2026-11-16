@@ -79,13 +79,18 @@
                             id="login-password"
                             name="password"
                             formControlName="password"
+                            appContadorCaracteres
+                            #contadorLoginPassword="contadorCaracteres"
+                            maxlength="20"
+                            [appSeleccionarAlEnfocar]="!!mensajeError(loginForm.controls.password) || passwordRechazada()"
+                            (input)="passwordRechazada.set(false)"
                             type="password"
                             autocomplete="current-password"
                             placeholder="Ingresá tu contraseña"
                             required
                             [readOnly]="enviando()"
                             [attr.aria-invalid]="mensajeError(loginForm.controls.password) ? 'true' : null"
-                            [attr.aria-describedby]="mensajeError(loginForm.controls.password) ? 'login-password-error' : null"
+                            [attr.aria-describedby]="(mensajeError(loginForm.controls.password) ? 'login-password-error' : '') + ' ' + contadorLoginPassword.contadorId"
                             [class.form-control--shake]="intentandoEnviar() && !!mensajeError(loginForm.controls.password)"
                             (animationend)="intentandoEnviar.set(false)"
                         >

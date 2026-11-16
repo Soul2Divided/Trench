@@ -2,7 +2,7 @@
 
 <form
     class="registro-form"
-    aria-labelledby="login-title"
+    [attr.aria-label]="modoAdministrador() ? 'Crear usuario' : 'Crear cuenta'"
     [formGroup]="registroForm"
     (ngSubmit)="enviarRegistro()"
     novalidate
@@ -127,18 +127,22 @@
             id="registro-password"
             name="password"
             formControlName="password"
+            appContadorCaracteres
+            #contadorRegistroPassword="contadorCaracteres"
+            maxlength="20"
+            [appSeleccionarAlEnfocar]="!!errorPassword"
             [readOnly]="enviando()"
             type="password"
             autocomplete="new-password"
             placeholder="Creá tu contraseña"
             required
             [attr.aria-invalid]="errorPassword ? 'true' : null"
-            [attr.aria-describedby]="errorPassword ? 'registro-password-ayuda registro-password-error' : 'registro-password-ayuda'"
+            [attr.aria-describedby]="(errorPassword ? 'registro-password-ayuda registro-password-error' : 'registro-password-ayuda') + ' ' + contadorRegistroPassword.contadorId"
             [class.form-control--shake]="intentandoEnviar() && !!errorPassword"
             (animationend)="intentandoEnviar.set(false)"
         >
 
-        <p class="form-hint" id="registro-password-ayuda">Al menos 8 caracteres, una mayúscula y un número.</p>
+        <p class="form-hint" id="registro-password-ayuda">Entre 8 y 20 caracteres, una mayúscula y un número.</p>
 
         @if (errorPassword) {
             <p class="form-error" id="registro-password-error" aria-live="polite">{{ errorPassword }}</p>
@@ -155,13 +159,17 @@
             id="registro-repetir-password"
             name="repetirPassword"
             formControlName="repetirPassword"
+            appContadorCaracteres
+            #contadorRegistroRepetirPassword="contadorCaracteres"
+            maxlength="20"
+            [appSeleccionarAlEnfocar]="!!errorRepetir"
             [readOnly]="enviando()"
             type="password"
             autocomplete="new-password"
             placeholder="Volvé a escribir tu contraseña"
             required
             [attr.aria-invalid]="errorRepetir ? 'true' : null"
-            [attr.aria-describedby]="errorRepetir ? 'registro-repetir-password-error' : null"
+            [attr.aria-describedby]="(errorRepetir ? 'registro-repetir-password-error' : '') + ' ' + contadorRegistroRepetirPassword.contadorId"
             [class.form-control--shake]="intentandoEnviar() && !!errorRepetir"
             (animationend)="intentandoEnviar.set(false)"
         >
@@ -209,16 +217,16 @@
             formControlName="descripcion"
             [readOnly]="enviando()"
             rows="3"
-            maxlength="250"
+            maxlength="100"
+            appContadorCaracteres
+            #contadorRegistroDescripcion="contadorCaracteres"
             placeholder="Contanos un poco de vos y de la música que te acompaña."
             required
             [attr.aria-invalid]="errorDescripcion ? 'true' : null"
-            [attr.aria-describedby]="errorDescripcion ? 'registro-descripcion-ayuda registro-descripcion-error' : 'registro-descripcion-ayuda'"
+            [attr.aria-describedby]="(errorDescripcion ? 'registro-descripcion-error' : '') + ' ' + contadorRegistroDescripcion.contadorId"
             [class.form-control--shake]="intentandoEnviar() && !!errorDescripcion"
             (animationend)="intentandoEnviar.set(false)"
         ></textarea>
-
-        <p class="form-hint" id="registro-descripcion-ayuda">{{ campos.descripcion.value.length }}/250 caracteres</p>
 
         @if (errorDescripcion) {
             <p class="form-error" id="registro-descripcion-error" aria-live="polite">{{ errorDescripcion }}</p>
@@ -252,13 +260,29 @@
         }
     </div>
 
+    @if (modoAdministrador()) {
+        <fieldset class="registro-form__roles" [disabled]="enviando()">
+            <legend class="form-label">Rol del nuevo usuario</legend>
+
+            <label>
+                <input type="radio" formControlName="rol" value="usuario">
+                Usuario
+            </label>
+
+            <label>
+                <input type="radio" formControlName="rol" value="administrador">
+                Administrador
+            </label>
+        </fieldset>
+    }
+
     <button
         class="button button--primary button--full registro-submit"
         type="submit"
         [disabled]="enviando()"
         [attr.aria-busy]="enviando()"
     >
-        {{ enviando() ? 'Creando cuenta...' : 'Crear cuenta' }}
+        {{ enviando() ? 'Creando cuenta...' : (modoAdministrador() ? 'Crear usuario' : 'Crear cuenta') }}
     </button>
 </form>
 

@@ -22,14 +22,20 @@
         <div class="detalle-publicacion__columna">
             <section class="detalle-publicacion__contenido">
                 <header class="detalle-publicacion__autor">
-                    <img class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="">
+                    <img appImagenRespaldo class="avatar" [src]="publicacion().autor.imagenPerfilUrl" alt="">
 
                     <div>
                         <span class="detalle-publicacion__nombre">{{ publicacion().autor.nombre }} {{ publicacion().autor.apellido }}</span>
                         <span>&#64;{{ publicacion().autor.nombreUsuario }}</span>
 
-                        <time [attr.datetime]="publicacion().fechaCreacion">
-                            {{ publicacion().fechaCreacion | date:'d MMM y, HH:mm' }}
+                        <time
+
+                            [attr.datetime]="publicacion().fechaCreacion"
+
+                            [title]="publicacion().fechaCreacion | date:'d MMM y, HH:mm'"
+
+                        >
+                            {{ publicacion().fechaCreacion | tiempoTranscurrido }}
                         </time>
                     </div>
                 </header>

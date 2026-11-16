@@ -1,6 +1,7 @@
 <section class="datos-perfil card" aria-labelledby="nombre-perfil">
     <div class="datos-perfil__presentacion">
         <img
+            appImagenRespaldo
             class="avatar datos-perfil__foto"
             [src]="vistaPrevia() || usuario().imagenPerfilUrl"
             [alt]="'Foto de perfil de ' + usuario().nombre"
@@ -11,7 +12,21 @@
             <p class="datos-perfil__usuario">&#64;{{ usuario().nombreUsuario }}</p>
 
             @if (!editando()) {
-                <p class="datos-perfil__descripcion">{{ usuario().descripcion }}</p>
+                <p class="datos-perfil__descripcion" id="descripcion-perfil">
+                    {{ usuario().descripcion | resumirTexto:(descripcionCompleta() ? usuario().descripcion.length : 15) }}
+                </p>
+
+                @if (usuario().descripcion.length > 15) {
+                    <button
+                        class="datos-perfil__leer-mas"
+                        type="button"
+                        aria-controls="descripcion-perfil"
+                        [attr.aria-expanded]="descripcionCompleta()"
+                        (click)="descripcionCompleta.set(!descripcionCompleta())"
+                    >
+                        {{ descripcionCompleta() ? 'Ver menos' : 'Ver descripción completa' }}
+                    </button>
+                }
             }
         </div>
 
@@ -137,12 +152,13 @@
                         class="form-control"
                         id="perfil-descripcion"
                         rows="3"
-                        maxlength="250"
+                        maxlength="100"
+                        appContadorCaracteres
+                        #contadorPerfilDescripcion="contadorCaracteres"
                         formControlName="descripcion"
                         [attr.aria-invalid]="errorDescripcion ? 'true' : null"
-                        [attr.aria-describedby]="errorDescripcion ? 'perfil-descripcion-ayuda perfil-descripcion-error' : 'perfil-descripcion-ayuda'"
+                        [attr.aria-describedby]="(errorDescripcion ? 'perfil-descripcion-error' : '') + ' ' + contadorPerfilDescripcion.contadorId"
                     ></textarea>
-                    <p class="form-hint" id="perfil-descripcion-ayuda">Hasta 250 caracteres.</p>
 
                     @if (errorDescripcion) {
                         <p class="form-error" id="perfil-descripcion-error">{{ errorDescripcion }}</p>

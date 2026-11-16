@@ -1,7 +1,7 @@
 <aside class="barra-lateral" aria-label="Perfil y navegación">
     <section class="perfil-resumen card" aria-label="Tu perfil">
         @if (usuario(); as datos) {
-            <img class="avatar avatar--grande" [src]="datos.imagenPerfilUrl" alt="">
+            <img appImagenRespaldo class="avatar avatar--grande" [src]="datos.imagenPerfilUrl" alt="">
 
             <div>
                 <p class="perfil-resumen__nombre">{{ datos.nombre }} {{ datos.apellido }}</p>
@@ -42,17 +42,40 @@
             Mi perfil
         </a>
 
+        <a
+            *appSoloAdministrador
+            class="navegacion__opcion"
+            routerLink="/dashboard/usuarios"
+            routerLinkActive="navegacion__opcion--activa"
+            ariaCurrentWhenActive="page"
+        >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="9" cy="7" r="4" />
+                <path d="M2 21v-2a7 7 0 0 1 14 0v2M17 3a4 4 0 0 1 0 8M22 21v-2a7 7 0 0 0-4-6" />
+            </svg>
+
+            Ver usuarios
+        </a>
+
         <div class="navegacion__separador"></div>
 
         @if (usuario()) {
-            <a class="navegacion__opcion" routerLink="/login" (click)="cerrarSesion()">
+            <button class="navegacion__opcion" type="button" (click)="solicitarCierreSesion()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
                     <path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" />
                 </svg>
 
                 Cerrar sesión
-            </a>
+            </button>
         }
     </nav>
 
 </aside>
+
+@if (confirmacionCierre(); as mensaje) {
+    <app-modal
+        [mensaje]="mensaje"
+        (cerrado)="confirmacionCierre.set(null)"
+        (confirmado)="confirmarCierreSesion()"
+    />
+}
