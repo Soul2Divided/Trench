@@ -51,7 +51,7 @@ export class Registro {
         repetirPassword: ['', [Validators.required, Validators.maxLength(20)]],
         fechaNacimiento: ['', [Validators.required, fechaNacimientoValida]],
         descripcion: ['', [textoObligatorio, Validators.maxLength(100)]],
-        imagen: this.formularios.control<File | null>(null, [Validators.required, imagenPerfilValida]),
+        imagen: this.formularios.control<File | null>(null, imagenPerfilValida),
         rol: this.formularios.control<'usuario' | 'administrador'>('usuario', Validators.required),
     }, { validators: contrasenasCoinciden });
 
@@ -110,10 +110,6 @@ export class Registro {
 
         const datos = this.registroForm.getRawValue();
 
-        if (!datos.imagen) {
-            return;
-        }
-
         const formulario = new FormData();
 
         formulario.append('nombre', datos.nombre);
@@ -124,7 +120,9 @@ export class Registro {
         formulario.append('repetirContrasena', datos.repetirPassword);
         formulario.append('fechaNacimiento', datos.fechaNacimiento);
         formulario.append('descripcion', datos.descripcion);
-        formulario.append('imagen', datos.imagen);
+        if (datos.imagen) {
+            formulario.append('imagen', datos.imagen);
+        }
 
         if (this.modoAdministrador()) {
             formulario.append('rol', datos.rol);

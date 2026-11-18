@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -18,35 +18,20 @@ export class App {
     private readonly destroyRef = inject(DestroyRef);
 
     protected readonly renovando = signal(false);
-    protected readonly errorRenovacion = signal(false);
 
     protected readonly mensajeSesion: MensajeModal = {
         tipo: 'info',
         titulo: 'Tu sesión está por vencer',
         mensaje: '¿Querés extender la sesión para seguir en Trench?',
-        textoBoton: 'Cerrar sesión',
+        textoBoton: 'Cancelar',
         textoConfirmar: 'Extender sesión',
         textoProcesando: 'Renovando…',
-    };
-
-    protected readonly mensajeError: MensajeModal = {
-        ...this.mensajeSesion,
-        tipo: 'error',
-        titulo: 'No pudimos extender la sesión',
-        mensaje: 'Intentá nuevamente antes de que venza tu sesión.',
-        textoConfirmar: 'Reintentar',
     };
 
     constructor() {
         this.autenticacion.validarSesion()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe();
-
-        effect(() => {
-            if (!this.autenticacion.mostrarAviso()) {
-                this.errorRenovacion.set(false);
-            }
-        });
     }
 
     protected extenderSesion(): void {
@@ -55,13 +40,15 @@ export class App {
         }
 
         this.renovando.set(true);
-        this.errorRenovacion.set(false);
-
         this.autenticacion.refrescar().pipe(
             takeUntilDestroyed(this.destroyRef),
             finalize(() => this.renovando.set(false)),
         ).subscribe({
-            error: () => this.errorRenovacion.set(true),
+            error: () => this.autenticacion.limpiarSesion(true),
         });
+    }
+
+    protected cerrarAvisoSesion(): void {
+        this.autenticacion.ocultarAviso();
     }
 }

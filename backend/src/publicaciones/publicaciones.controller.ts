@@ -23,7 +23,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MongoIdPipe } from '../pipes/mongo-id.pipe.js';
 import { AuthGuard } from '../autenticacion/auth.guard.js';
 import type { SolicitudAutenticada } from '../autenticacion/auth.guard.js';
+import { AdministradorGuard } from '../autenticacion/administrador.guard.js';
 import { CrearComentarioDto } from './dto/crear-comentario.dto.js';
+import { EstadisticasPeriodoDto } from './dto/estadisticas-periodo.dto.js';
 import { ListarComentariosDto } from './dto/listar-comentarios.dto.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
@@ -130,5 +132,25 @@ export class PublicacionesController {
         @Req() request: SolicitudAutenticada,
     ) {
         return this.publicacionesService.eliminarComentario(id, comentarioId, request.user.sub);
+    }
+
+    /* --- Estadísticas --- */
+
+    @Get('estadisticas/publicaciones-por-usuario')
+    @UseGuards(AdministradorGuard)
+    obtenerPublicacionesPorUsuario(@Query() periodo: EstadisticasPeriodoDto) {
+        return this.publicacionesService.obtenerPublicacionesPorUsuario(periodo);
+    }
+
+    @Get('estadisticas/comentarios-por-fecha')
+    @UseGuards(AdministradorGuard)
+    obtenerComentariosPorFecha(@Query() periodo: EstadisticasPeriodoDto) {
+        return this.publicacionesService.obtenerComentariosPorFecha(periodo);
+    }
+
+    @Get('estadisticas/comentarios-por-publicacion')
+    @UseGuards(AdministradorGuard)
+    obtenerComentariosPorPublicacion(@Query() periodo: EstadisticasPeriodoDto) {
+        return this.publicacionesService.obtenerComentariosPorPublicacion(periodo);
     }
 }

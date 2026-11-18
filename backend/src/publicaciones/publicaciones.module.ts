@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthGuard } from '../autenticacion/auth.guard.js';
+import { AdministradorGuard } from '../autenticacion/administrador.guard.js';
 
 import { FileModule } from '../file/file.module.js';
 import { UsuariosModule } from '../usuarios/usuarios.module.js';
@@ -21,6 +22,6 @@ import { Publicacion, PublicacionSchema } from './schemas/publicacion.schema.js'
         FileModule,
     ],
     controllers: [PublicacionesController],
-    providers: [PublicacionesService, AuthGuard],
+    providers: [PublicacionesService, AuthGuard, AdministradorGuard],
 })
 export class PublicacionesModule {}

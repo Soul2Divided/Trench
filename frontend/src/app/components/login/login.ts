@@ -42,6 +42,16 @@ export class Login implements OnInit {
     ngOnInit(): void {
         if (this.autenticacion.usuarioActual()) {
             void this.router.navigate(['/publicaciones']);
+
+            return;
+        }
+
+        if (this.autenticacion.consumirAvisoSesionExpirada()) {
+            this.mensajeModal.set({
+                tipo: 'info',
+                titulo: 'Sesión expirada',
+                mensaje: 'Tu sesión finalizó por seguridad. Iniciá sesión nuevamente para continuar.',
+            });
         }
     }
 

@@ -9,6 +9,14 @@ export const requiereSesion: CanActivateFn = () => {
     const router = inject(Router);
 
     return autenticacion.validarSesion().pipe(
-        map(() => autenticacion.usuarioActual() !== null || router.createUrlTree(['/login'])),
+        map(() => {
+            if (autenticacion.estaSesionVencida()) {
+                autenticacion.limpiarSesion(true);
+
+                return false;
+            }
+
+            return autenticacion.usuarioActual() !== null || router.createUrlTree(['/login']);
+        }),
     );
 };

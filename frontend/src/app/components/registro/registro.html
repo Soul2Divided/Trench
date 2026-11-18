@@ -234,16 +234,15 @@
     </div>
 
     <div class="form-field">
-        @let errorImagen = mensajeError(campos.imagen, 'Elegí tu imagen de perfil.');
+        @let errorImagen = mensajeError(campos.imagen, 'Elegí una imagen de perfil válida.');
 
-        <label class="form-label" for="registro-imagen">Imagen de perfil</label>
+        <label class="form-label" for="registro-imagen">Imagen de perfil (opcional)</label>
 
         <input
             class="form-control"
             id="registro-imagen"
             name="imagen"
             type="file"
-            required
             [disabled]="enviando()"
             accept="image/jpeg,image/png,image/webp"
             [attr.aria-invalid]="errorImagen ? 'true' : null"
@@ -253,7 +252,7 @@
             (animationend)="intentandoEnviar.set(false)"
         >
 
-        <p class="form-hint" id="registro-imagen-ayuda">JPG, PNG o WebP. Menos de 5 MiB.</p>
+        <p class="form-hint" id="registro-imagen-ayuda">La imagen debe ser JPG, PNG o WebP de menos de 5 MiB.</p>
 
         @if (errorImagen) {
             <p class="form-error" id="registro-imagen-error" aria-live="polite">{{ errorImagen }}</p>

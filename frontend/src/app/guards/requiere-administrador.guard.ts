@@ -12,6 +12,12 @@ export const requiereAdministrador: CanActivateFn = () => {
         map(() => {
             const usuario = autenticacion.usuarioActual();
 
+            if (autenticacion.estaSesionVencida()) {
+                autenticacion.limpiarSesion(true);
+
+                return false;
+            }
+
             if (!usuario) {
                 return router.createUrlTree(['/login']);
             }

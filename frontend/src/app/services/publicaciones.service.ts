@@ -2,6 +2,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import {
+    ComentariosPorFecha,
+    ComentariosPorPublicacion,
+    PeriodoEstadisticas,
+    PublicacionesPorUsuario,
+    ResumenComentariosPorFecha,
+} from '../models/estadisticas';
 import { ComentarioPublicacion, ConsultaPublicaciones, EstadoMeGusta, PaginaComentarios, PaginaPublicaciones, Publicacion } from '../models/publicacion';
 
 import { environment } from '../../environments/environment';
@@ -33,6 +40,27 @@ export class PublicacionesService {
         return this.http.delete<void>(`${this.url}/${encodeURIComponent(id)}`);
     }
 
+    obtenerPublicacionesPorUsuario(periodo: PeriodoEstadisticas): Observable<PublicacionesPorUsuario[]> {
+        return this.http.get<PublicacionesPorUsuario[]>(
+            `${this.url}/estadisticas/publicaciones-por-usuario`,
+            { params: this.crearParametrosPeriodo(periodo) },
+        );
+    }
+
+    obtenerComentariosPorFecha(periodo: PeriodoEstadisticas): Observable<ResumenComentariosPorFecha> {
+        return this.http.get<ResumenComentariosPorFecha>(
+            `${this.url}/estadisticas/comentarios-por-fecha`,
+            { params: this.crearParametrosPeriodo(periodo) },
+        );
+    }
+
+    obtenerComentariosPorPublicacion(periodo: PeriodoEstadisticas): Observable<ComentariosPorPublicacion[]> {
+        return this.http.get<ComentariosPorPublicacion[]>(
+            `${this.url}/estadisticas/comentarios-por-publicacion`,
+            { params: this.crearParametrosPeriodo(periodo) },
+        );
+    }
+
     cambiarMeGusta(id: string, darMeGusta: boolean): Observable<EstadoMeGusta> {
         const url = `${this.url}/${encodeURIComponent(id)}/me-gusta`;
 
@@ -62,5 +90,11 @@ export class PublicacionesService {
 
     eliminarComentario(id: string, comentarioId: string): Observable<void> {
         return this.http.delete<void>(`${this.url}/${encodeURIComponent(id)}/comentarios/${encodeURIComponent(comentarioId)}`);
+    }
+
+    private crearParametrosPeriodo(periodo: PeriodoEstadisticas): HttpParams {
+        return new HttpParams()
+            .set('desde', periodo.desde)
+            .set('hasta', periodo.hasta);
     }
 }

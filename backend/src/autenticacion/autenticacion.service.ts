@@ -21,7 +21,7 @@ export class AutenticacionService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async registerUser(registerDto: RegisterUsuarioDto, imagen: Express.Multer.File) {
+    async registerUser(registerDto: RegisterUsuarioDto, imagen: Express.Multer.File | undefined) {
         const usuario = await this.usuariosService.crear(registerDto, imagen, 'usuario');
 
         return {

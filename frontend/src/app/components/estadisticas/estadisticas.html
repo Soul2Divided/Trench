@@ -1,0 +1,120 @@
+<div class="pagina-social fondo-escamas fondo-escamas--laterales">
+    <app-navbar />
+
+    <div class="distribucion-social page-container">
+        <app-panel-usuario />
+
+        <main class="estadisticas" aria-labelledby="titulo-estadisticas">
+            <header class="encabezado-seccion">
+                <div>
+                    <h1 id="titulo-estadisticas">Estadísticas</h1>
+                    <p>Analizá la actividad de Trench dentro del período que elijas.</p>
+                </div>
+            </header>
+
+            <section class="estadisticas__panel card" aria-label="Panel de estadísticas">
+                <nav class="estadisticas__selector" aria-label="Gráfico a visualizar">
+                    <p class="estadisticas__selector-titulo">Ver estadísticas de</p>
+
+                    <button
+                        class="estadisticas__opcion"
+                        type="button"
+                        [class.estadisticas__opcion--activa]="graficoActivo() === 'publicaciones'"
+                        [attr.aria-pressed]="graficoActivo() === 'publicaciones'"
+                        [disabled]="cargando()"
+                        (click)="seleccionarGrafico('publicaciones')"
+                    >
+                        Publicaciones por usuario
+                    </button>
+
+                    <button
+                        class="estadisticas__opcion"
+                        type="button"
+                        [class.estadisticas__opcion--activa]="graficoActivo() === 'comentarios-fecha'"
+                        [attr.aria-pressed]="graficoActivo() === 'comentarios-fecha'"
+                        [disabled]="cargando()"
+                        (click)="seleccionarGrafico('comentarios-fecha')"
+                    >
+                        Comentarios en el tiempo
+                    </button>
+
+                    <button
+                        class="estadisticas__opcion"
+                        type="button"
+                        [class.estadisticas__opcion--activa]="graficoActivo() === 'comentarios-publicacion'"
+                        [attr.aria-pressed]="graficoActivo() === 'comentarios-publicacion'"
+                        [disabled]="cargando()"
+                        (click)="seleccionarGrafico('comentarios-publicacion')"
+                    >
+                        Repercusión por publicación
+                    </button>
+                </nav>
+
+                <section class="estadisticas__contenido" aria-live="polite">
+                    <form class="estadisticas__filtros" [formGroup]="periodoForm" (ngSubmit)="consultar()">
+                        <div class="form-field">
+                            <label class="form-label" for="fecha-desde">Desde</label>
+                            <input class="form-control" id="fecha-desde" type="date" formControlName="desde">
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="fecha-hasta">Hasta</label>
+                            <input class="form-control" id="fecha-hasta" type="date" formControlName="hasta">
+                        </div>
+
+                        <button class="button button--accent" type="submit" [disabled]="cargando()">Actualizar</button>
+                    </form>
+
+                    @if (periodoForm.touched && periodoForm.invalid) {
+                        <p class="estadisticas__error" role="alert">Elegí ambas fechas para consultar las estadísticas.</p>
+                    }
+
+                    @if (errorCarga(); as error) {
+                        <div class="estado-listado" role="alert">
+                            <p>{{ error }}</p>
+                            <button class="button button--accent" type="button" [disabled]="cargando()" (click)="consultar()">Reintentar</button>
+                        </div>
+                    }
+
+                    @if (graficoActivo() === 'publicaciones') {
+                        <header class="estadisticas__encabezado-grafico">
+                            <h2>Publicaciones por usuario</h2>
+                            <p>Cantidad de publicaciones creadas por cada usuario.</p>
+                        </header>
+                    } @else if (graficoActivo() === 'comentarios-fecha') {
+                        <header class="estadisticas__encabezado-grafico">
+                            <h2>Comentarios a lo largo del tiempo</h2>
+                            <p>{{ totalComentarios() }} comentarios realizados en el período.</p>
+                        </header>
+                    } @else {
+                        <header class="estadisticas__encabezado-grafico">
+                            <h2>Repercusión por publicación</h2>
+                            <p>Proporción de comentarios recibidos por cada publicación.</p>
+                        </header>
+                    }
+
+                    @if (cargando()) {
+                        <div class="carga-en-linea" role="status">
+                            <span class="spinner" aria-hidden="true"></span>
+                            <p>Cargando estadísticas…</p>
+                        </div>
+                    } @else if (sinDatos()) {
+                        <p class="estadisticas__vacio" role="status">
+                            @if (graficoActivo() === 'publicaciones') {
+                                No hubo publicaciones en este período.
+                            } @else if (graficoActivo() === 'comentarios-fecha') {
+                                No hubo comentarios en este período.
+                            } @else {
+                                Ninguna publicación recibió comentarios en este período.
+                            }
+                        </p>
+                    }
+
+                    <div class="estadisticas__lienzo" [hidden]="cargando() || sinDatos()">
+                        <canvas #grafico aria-label="Gráfico estadístico seleccionado" role="img"></canvas>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+</div>
