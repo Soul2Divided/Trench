@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { mongo, Types } from 'mongoose';
 import type { Connection } from 'mongoose';
@@ -9,6 +9,7 @@ import type { UsuarioDocument } from '../usuarios/schemas/usuario.schema.js';
 import { UsuariosService } from '../usuarios/usuarios.service.js';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto.js';
 import { CrearComentarioDto } from './dto/crear-comentario.dto.js';
+import { EstadisticasPeriodoDto } from './dto/estadisticas-periodo.dto.js';
 import { ListarComentariosDto } from './dto/listar-comentarios.dto.js';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto.js';
 import { Comentario } from './schemas/comentario.schema.js';
@@ -19,6 +20,25 @@ import type { PublicacionDocument } from './schemas/publicacion.schema.js';
 interface PublicacionConCantidadComentarios {
     publicacionId: Types.ObjectId;
     cantidadComentarios: number;
+}
+
+export interface PublicacionesPorUsuario {
+    usuarioId: Types.ObjectId;
+    nombre: string;
+    apellido: string;
+    nombreUsuario: string;
+    cantidad: number;
+}
+
+export interface ComentariosPorFecha {
+    fecha: string;
+    cantidad: number;
+}
+
+export interface ComentariosPorPublicacion {
+    publicacionId: Types.ObjectId;
+    titulo: string;
+    cantidad: number;
 }
 
 @Injectable()
@@ -275,6 +295,136 @@ export class PublicacionesService {
         await comentario.deleteOne();
     }
 
+    /* --- Estadísticas --- */
+
+    async obtenerPublicacionesPorUsuario(periodo: EstadisticasPeriodoDto) {
+        const { desde, hasta } = this.obtenerRangoFechas(periodo);
+
+        return this.publicacionModel.aggregate<PublicacionesPorUsuario>([
+            {
+                $match: {
+                    fechaCreacion: { $gte: desde, $lt: hasta },
+                },
+            },
+            {
+                $group: {
+                    _id: '$autor',
+                    cantidad: { $sum: 1 },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'usuarios',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'usuario',
+                },
+            },
+            { $unwind: '$usuario' },
+            {
+                $project: {
+                    _id: 0,
+                    usuarioId: '$_id',
+                    nombre: '$usuario.nombre',
+                    apellido: '$usuario.apellido',
+                    nombreUsuario: '$usuario.nombreUsuario',
+                    cantidad: 1,
+                },
+            },
+            { $sort: { cantidad: -1, nombreUsuario: 1 } },
+        ]).exec();
+    }
+
+    async obtenerComentariosPorFecha(periodo: EstadisticasPeriodoDto) {
+        const { desde, hasta } = this.obtenerRangoFechas(periodo);
+
+        const comentarios = await this.comentarioModel.aggregate<ComentariosPorFecha>([
+            {
+                $match: {
+                    fechaCreacion: { $gte: desde, $lt: hasta },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: '%Y-%m-%d',
+                            date: '$fechaCreacion',
+                            timezone: 'UTC',
+                        },
+                    },
+                    cantidad: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    fecha: '$_id',
+                    cantidad: 1,
+                },
+            },
+            { $sort: { fecha: 1 } },
+        ]).exec();
+
+        const cantidadPorFecha = new Map(comentarios.map(comentario => [comentario.fecha, comentario.cantidad]));
+        const comentariosPorDia: ComentariosPorFecha[] = [];
+
+        for (const fecha = new Date(desde); fecha < hasta; fecha.setUTCDate(fecha.getUTCDate() + 1)) {
+            const fechaFormateada = fecha.toISOString().slice(0, 10);
+
+            comentariosPorDia.push({
+                fecha: fechaFormateada,
+                cantidad: cantidadPorFecha.get(fechaFormateada) ?? 0,
+            });
+        }
+
+        return {
+            total: comentarios.reduce((total, comentario) => total + comentario.cantidad, 0),
+            comentarios: comentariosPorDia,
+        };
+    }
+
+    async obtenerComentariosPorPublicacion(periodo: EstadisticasPeriodoDto) {
+        const { desde, hasta } = this.obtenerRangoFechas(periodo);
+
+        return this.publicacionModel.aggregate<ComentariosPorPublicacion>([
+            {
+                $lookup: {
+                    from: 'comentarios',
+                    let: { publicacionId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$publicacion', '$$publicacionId'] },
+                                        { $gte: ['$fechaCreacion', desde] },
+                                        { $lt: ['$fechaCreacion', hasta] },
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $count: 'cantidad',
+                        },
+                    ],
+                    as: 'estadisticaComentarios',
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    publicacionId: '$_id',
+                    titulo: 1,
+                    cantidad: {
+                        $ifNull: [{ $arrayElemAt: ['$estadisticaComentarios.cantidad', 0] }, 0],
+                    },
+                },
+            },
+            { $sort: { cantidad: -1, titulo: 1 } },
+        ]).exec();
+    }
+
     private async obtenerComentarioPropio(id: string, comentarioId: string, usuarioId: string) {
         const usuario = await this.usuariosService.obtenerPorId(usuarioId);
         const publicacion = await this.publicacionModel.exists({ _id: id, activa: true }).exec();
@@ -294,6 +444,23 @@ export class PublicacionesService {
         }
 
         return { comentario, usuario };
+    }
+
+    private obtenerRangoFechas(periodo: EstadisticasPeriodoDto) {
+        const desde = new Date(periodo.desde);
+        const hasta = new Date(periodo.hasta);
+
+        if (Number.isNaN(desde.getTime()) || Number.isNaN(hasta.getTime())) {
+            throw new BadRequestException('Las fechas del período no son válidas.');
+        }
+
+        hasta.setUTCDate(hasta.getUTCDate() + 1);
+
+        if (desde >= hasta) {
+            throw new BadRequestException('La fecha desde no puede ser posterior a la fecha hasta.');
+        }
+
+        return { desde, hasta };
     }
 
     private async obtenerCantidadComentariosPorPublicacion(publicacionIds: Types.ObjectId[]): Promise<Map<string, number>> {
@@ -358,10 +525,6 @@ export class PublicacionesService {
 
             if (!publicacion) {
                 throw new NotFoundException('La publicación no existe o ya no está disponible.');
-            }
-
-            if (darMeGusta && publicacion.autor.equals(relacion.usuario)) {
-                throw new ForbiddenException('No podés dar me gusta a tus propias publicaciones.');
             }
 
             let variacion = 0;

@@ -75,6 +75,7 @@ export class UsuariosController {
     crear(
         @Body() datos: CrearUsuarioDto,
         @UploadedFile(new ParseFilePipe({
+            fileIsRequired: false,
             validators: [
                 new MaxFileSizeValidator({
                     maxSize: TAMANO_MAXIMO_IMAGEN,
@@ -87,7 +88,7 @@ export class UsuariosController {
             ],
             exceptionFactory: mensaje => new BadRequestException(mensaje),
         }))
-        imagen: Express.Multer.File,
+        imagen?: Express.Multer.File,
     ) {
         return this.usuariosService.crear(datos, imagen, datos.rol);
     }

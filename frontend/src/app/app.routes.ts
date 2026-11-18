@@ -29,6 +29,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/usuarios/usuarios').then(m => m.Usuarios),
     },
     {
+        path: 'dashboard/estadisticas',
+        canActivate: [requiereAdministrador],
+        loadComponent: () => import('./components/estadisticas/estadisticas').then(m => m.Estadisticas),
+    },
+    {
         path: '**',
         redirectTo: '',
     },

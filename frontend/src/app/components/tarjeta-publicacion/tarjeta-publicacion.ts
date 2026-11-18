@@ -50,7 +50,7 @@ export class TarjetaPublicacion {
     }
 
     protected cambiarMeGusta(): void {
-        if (this.propia() || this.actualizandoMeGusta() || this.eliminando()) {
+        if (this.actualizandoMeGusta() || this.eliminando()) {
             return;
         }
 

@@ -39,6 +39,7 @@ export class AutenticacionController {
         @Body() registerDto: RegisterUsuarioDto,
         @UploadedFile(
             new ParseFilePipe({
+                fileIsRequired: false,
                 validators: [
                     new MaxFileSizeValidator({
                         maxSize: TAMANO_MAXIMO_IMAGEN,
@@ -52,7 +53,7 @@ export class AutenticacionController {
                 exceptionFactory: (mensaje) => new BadRequestException(mensaje),
             }),
         )
-        imagen: Express.Multer.File,
+        imagen: Express.Multer.File | undefined,
         @Res({ passthrough: true }) res: Response,
     ) {
         const { token, ...usuario } = await this.autenticacionService.registerUser(registerDto, imagen);

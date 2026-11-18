@@ -20,7 +20,7 @@ export const autenticacionInterceptor: HttpInterceptorFn = (solicitud, siguiente
     return siguiente(peticion).pipe(
         catchError((error: unknown) => {
             if (error instanceof HttpErrorResponse && error.status === 401 && !esIngreso) {
-                autenticacion.limpiarSesion();
+                autenticacion.limpiarSesion(true);
             }
 
             return throwError(() => error);

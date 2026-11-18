@@ -29,8 +29,8 @@ export class Usuario {
     @Prop({ required: true })
     imagenPerfilUrl: string;
 
-    @Prop({ required: true })
-    imagenPerfilPublicId: string;
+    @Prop()
+    imagenPerfilPublicId?: string;
 
     @Prop({ required: true, enum: ['usuario', 'administrador'], default: 'usuario' })
     rol: 'usuario' | 'administrador';

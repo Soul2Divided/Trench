@@ -22,6 +22,14 @@ export interface DatosNuevoUsuario {
     rol: Usuario['rol'];
 }
 
+const IMAGEN_PERFIL_PREDETERMINADA = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">'
+    + '<rect width="96" height="96" rx="48" fill="#e2e8f0"/>'
+    + '<circle cx="48" cy="35" r="17" fill="#64748b"/>'
+    + '<path d="M17 88a31 31 0 0 1 62 0" fill="#64748b"/>'
+    + '</svg>',
+);
+
 @Injectable()
 export class UsuariosService {
     private readonly logger = new Logger(UsuariosService.name);
@@ -63,7 +71,7 @@ export class UsuariosService {
         return usuarios.map(usuario => this.parsearUsuario(usuario));
     }
 
-    async crear(datos: RegisterUsuarioDto, imagen: Express.Multer.File, rol: Usuario['rol']) {
+    async crear(datos: RegisterUsuarioDto, imagen: Express.Multer.File | undefined, rol: Usuario['rol']) {
         if (datos.contrasena !== datos.repetirContrasena) {
             throw new BadRequestException('Las contraseñas no coinciden.');
         }
@@ -81,7 +89,9 @@ export class UsuariosService {
         }
 
         const contrasenaHash = await this.passwordHasher.hash(datos.contrasena);
-        const imagenSubida = await this.cloudinaryService.subirImagen(imagen.buffer);
+        const imagenSubida = imagen
+            ? await this.cloudinaryService.subirImagen(imagen.buffer)
+            : undefined;
         let usuario: UsuarioDocument;
 
         try {
@@ -93,15 +103,17 @@ export class UsuariosService {
                 contrasenaHash,
                 fechaNacimiento: new Date(datos.fechaNacimiento),
                 descripcion: datos.descripcion,
-                imagenPerfilUrl: imagenSubida.secure_url,
-                imagenPerfilPublicId: imagenSubida.public_id,
+                imagenPerfilUrl: imagenSubida?.secure_url ?? IMAGEN_PERFIL_PREDETERMINADA,
+                imagenPerfilPublicId: imagenSubida?.public_id ?? '',
                 rol,
             });
         } catch (error: unknown) {
-            try {
-                await this.cloudinaryService.eliminarImagen(imagenSubida.public_id);
-            } catch {
-                this.logger.warn('No se pudo eliminar la imagen de un registro fallido.');
+            if (imagenSubida) {
+                try {
+                    await this.cloudinaryService.eliminarImagen(imagenSubida.public_id);
+                } catch {
+                    this.logger.warn('No se pudo eliminar la imagen de un registro fallido.');
+                }
             }
 
             throw error;

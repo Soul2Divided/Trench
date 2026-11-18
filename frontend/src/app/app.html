@@ -5,9 +5,9 @@
 
     @if (autenticacion.mostrarAviso()) {
         <app-modal
-            [mensaje]="errorRenovacion() ? mensajeError : mensajeSesion"
+            [mensaje]="mensajeSesion"
             [procesando]="renovando()"
-            (cerrado)="autenticacion.cerrarSesion()"
+            (cerrado)="cerrarAvisoSesion()"
             (confirmado)="extenderSesion()"
         />
     }

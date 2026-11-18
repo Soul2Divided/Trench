@@ -31,9 +31,10 @@ export class AutenticacionService {
     private readonly usuario = signal<UsuarioAutenticado | null>(null);
     private readonly validando = signal(true);
     private readonly aviso = signal(false);
+    private readonly avisoSesionExpirada = signal(false);
 
     private temporizadorAviso?: ReturnType<typeof setTimeout>;
-    private temporizadorVencimiento?: ReturnType<typeof setTimeout>;
+    private venceEn?: number;
     private validacionInicial?: Observable<RespuestaAutenticacion | null>;
 
     readonly usuarioActual = this.usuario.asReadonly();
@@ -91,26 +92,57 @@ export class AutenticacionService {
         this.http.post(`${this.url}/logout`, {}).subscribe({ error: () => {} });
     }
 
-    limpiarSesion(): void {
+    limpiarSesion(sesionExpirada = false): void {
         this.limpiarTemporizadores();
         this.usuario.set(null);
         this.aviso.set(false);
+        this.avisoSesionExpirada.set(sesionExpirada);
 
         void this.router.navigate(['/login']);
     }
 
+    consumirAvisoSesionExpirada(): boolean {
+        const sesionExpirada = this.avisoSesionExpirada();
+
+        this.avisoSesionExpirada.set(false);
+
+        return sesionExpirada;
+    }
+
+    ocultarAviso(): void {
+        this.aviso.set(false);
+        clearTimeout(this.temporizadorAviso);
+    }
+
+    estaSesionVencida(): boolean {
+        return this.venceEn !== undefined && Date.now() >= this.venceEn;
+    }
+
     private guardarSesion(respuesta: RespuestaAutenticacion): void {
-        const { avisoEn, venceEn, ...usuario } = respuesta;
+        const avisoEn = respuesta.avisoEn;
+        const venceEn = respuesta.venceEn;
+        const usuario: UsuarioAutenticado = {
+            id: respuesta.id,
+            nombre: respuesta.nombre,
+            apellido: respuesta.apellido,
+            correo: respuesta.correo,
+            nombreUsuario: respuesta.nombreUsuario,
+            fechaNacimiento: respuesta.fechaNacimiento,
+            descripcion: respuesta.descripcion,
+            imagenPerfilUrl: respuesta.imagenPerfilUrl,
+            rol: respuesta.rol,
+        };
 
         this.limpiarTemporizadores();
         this.actualizarUsuario(usuario);
         this.aviso.set(false);
+        this.avisoSesionExpirada.set(false);
+        this.venceEn = venceEn;
         this.temporizadorAviso = setTimeout(() => this.aviso.set(true), Math.max(0, avisoEn - Date.now()));
-        this.temporizadorVencimiento = setTimeout(() => this.cerrarSesion(), Math.max(0, venceEn - Date.now()));
     }
 
     private limpiarTemporizadores(): void {
         clearTimeout(this.temporizadorAviso);
-        clearTimeout(this.temporizadorVencimiento);
+        this.venceEn = undefined;
     }
 }
